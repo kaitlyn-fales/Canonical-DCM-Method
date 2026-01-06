@@ -14,26 +14,13 @@ functions {
     vector[m] dydt;
     vector[n_u] u_t;
     matrix[m,m] B_all = rep_matrix(0,m,m);
-    matrix[m,m] A0;
     
     for(i in 1:n_u){
       u_t[i] = constant_interpolation(t,tp_vec,u[,i]);
-      //print("B[i]", B[i]);
       B_all += u_t[i]*B[i];
     }
-    A0 = A+B_all;
-    //for (i in 1:m) { 
-    //  A0[i, i] = -0.5 * exp(A0[i, i]);
-    //}
-    
-    dydt = A0*y + C*u_t;
-    
-    // print("A", A);
-    // print("B", B_all);
-    // print("u_t", u_t);
-    // print("y", y);
-    // print("C", C*u_t);
-    //print(dydt);
+
+    dydt = (A+B_all)*y + C*u_t;
     return dydt;
   }
   
@@ -100,13 +87,9 @@ functions {
         HRF_tp[t] = exp(gamma_lpdf(tp[t] | 6, 1)) - 0.166667*exp(gamma_lpdf(tp[t] | 16, 1));
       }
     }
-  
-    // (mu*HRF)[1:T]
-    //array[T] vector[m] HRF_mu_v2;
+
     for (i in 1:m){
       HRF_mu_v[,i] = to_array_1d(stan_convolve(T, to_vector(mu[,i]), HRF_tp));
-      //HRF_mu_v2[,i] = to_array_1d(convolve(to_vector(mu[,i]), to_vector(HRF_tp)))[1:T];
-      //print(max(abs(to_vector(HRF_mu_v[,i])-to_vector(HRF_mu_v2[,i]))));
     }
     return HRF_mu_v;
   }
@@ -164,9 +147,6 @@ functions {
                       int prev_index, int m){
     matrix[m,m] A0 = A;
     vector[m] result;  
-    //for (k in 1:m) { 
-    //  A0[k, k] = -0.5 * exp(A0[k, k]);
-    //}
     result = (matrix_exp(A0*(tp_vec[i]-tp_vec[prev_index]))*y);
     return result;
   }
@@ -184,9 +164,6 @@ functions {
       B_all += B[j]*u[i-1,j];
     }
     A0 = A + B_all;
-    //for (k in 1:m) { 
-    //  A0[k, k] = -0.5 * exp(A0[k, k]);
-    //}
     b0 = C*(u[i-1,]');
     ystar = -(inverse(A0)*b0);
     result = (matrix_exp(A0*(tp_vec[i]-tp_vec[prev_index]))*(y-ystar)+ystar);
@@ -265,24 +242,9 @@ data {
 
 transformed data {
   vector[T] tp_vec = to_vector(tp);
-  // array[d_A,2] int A_idxs
-  //   = {{2,1}};
-  // array[d_B,3] int B_idxs
-  //   = {{2,3,1}};
-  // array[d_C,2] int C_idxs
-  //   = {{1,1}};
-    
-  // int m2 = 0;
-  // for (i in 1:m){
-  //   m2 +=m; 
-  // }
-  
-  // vector[m] y0 = y_obs[1,]; // initial observed states
-  // array[T1] vector[m] y1 = y_obs[2:T, ]; //remainig observed states
 }
 
 parameters {
-  // real<lower = 0> sigma; // noise
   array[m] real<lower=0> sigma; // noise
   vector[d_A] nu_A; //parameter in A
   vector[d_B] nu_B; //parameter in A
