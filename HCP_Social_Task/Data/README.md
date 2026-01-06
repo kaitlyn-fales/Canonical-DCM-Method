@@ -1,0 +1,1 @@
+This is the placeholder folder for the processed .RData files after downloading the 100 unrelated subjects from the HCP Social Task database. 
