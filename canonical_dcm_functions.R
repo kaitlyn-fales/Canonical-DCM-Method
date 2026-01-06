@@ -123,16 +123,16 @@ get_stan_dat <- function(data, hypothesis_idxs, ode_solver_type = 1, tol = 10^{-
 # Function for using variational Pathfinder to get initial values list, or specifying init = 0 for error
 get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
   
-  if (is.null(pathfinder_init) == T) {pathfinder_init <- list(sigma = rep(1,m),
-                                                              nu_A = rep(0,d_A),
-                                                              nu_B = rep(0,d_B),
-                                                              nu_C = rep(0,d_C),
-                                                              z0 = rep(0.1,m))}
+  if (is.null(pathfinder_init) == T) {pathfinder_init <- list(sigma = rep(1,data$m),
+                                                              nu_A = rep(0,data$d_A),
+                                                              nu_B = rep(0,data$d_B),
+                                                              nu_C = rep(0,data$d_C),
+                                                              z0 = rep(0.1,data$m))}
   
   # tryCatch loop for initial value specification
   inits_list <- tryCatch(
     { # Try pathfinder for initial values
-      pathfinder <- mod$pathfinder(data = stan_dat, 
+      pathfinder <- mod$pathfinder(data = data, 
                                          seed = 1234, 
                                          init = list(pathfinder_init), 
                                          num_paths = num_paths)
@@ -144,11 +144,11 @@ get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
       # Initialize with 0 except for sigma and z0 if pathfinder fails for any reason
       message("Pathfinder failed: ", e$message)
       
-      result_backup <- list(list(sigma = rep(1,m),
-                                 nu_A = rep(0,d_A),
-                                 nu_B = rep(0,d_B),
-                                 nu_C = rep(0,d_C),
-                                 z0 = rep(0.1,m)))
+      result_backup <- list(list(sigma = rep(1,data$m),
+                                 nu_A = rep(0,data$d_A),
+                                 nu_B = rep(0,data$d_B),
+                                 nu_C = rep(0,data$d_C),
+                                 z0 = rep(0.1,data$m)))
       result_backup
     }
   )
@@ -157,7 +157,7 @@ get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
 }
 
 # Function for running HMC NUTS sampler for warmup iterations and then sampling until convergence by multivariate ESS
-dcm_sample <- function(mod, data, inits_list, output_dir, basename,
+dcm_sample <- function(mod, data, inits_list, output_dir, basename, metric = c("diag_e","dense_e"),
                        refresh = 100, warmup_iter = 5000, n_iter_chunk = 1000, 
                        max_iter = 10^6, adapt_delta = 0.9, seed = 1234, chains = 1){
   
@@ -173,7 +173,8 @@ dcm_sample <- function(mod, data, inits_list, output_dir, basename,
     adapt_delta = adapt_delta,
     save_warmup = TRUE,
     output_dir = output_dir,
-    output_basename = paste0(basename,"_out"))
+    output_basename = paste0(basename,"_out"),
+    metric = metric)
   
   total_draws <- n_iter_chunk
   chunk <- 1
@@ -182,6 +183,10 @@ dcm_sample <- function(mod, data, inits_list, output_dir, basename,
   # Get inits to start sampling by checkpoints
   draws <- posterior::as_draws_df(fit$draws())
   last_init <- get_last_draws_for_init(draws)
+  
+  # List to store draws and list to store diagnostics
+  all_draws <- list() 
+  all_diagnostics <- list()
   
   # Add draws to list
   all_draws[[1]] <- draws
@@ -207,6 +212,7 @@ dcm_sample <- function(mod, data, inits_list, output_dir, basename,
       chains = chains,
       adapt_delta = adapt_delta,
       adapt_engaged = FALSE,
+      metric = metric,
       step_size = step_size,
       inv_metric = inv_metric)
     
