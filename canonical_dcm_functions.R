@@ -156,6 +156,103 @@ get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
   return(inits_list)
 }
 
+# Function for running HMC NUTS sampler for warmup iterations and then sampling until convergence by multivariate ESS
+dcm_sample <- function(mod, data, inits_list, output_dir, basename,
+                       refresh = 100, warmup_iter = 5000, n_iter_chunk = 1000, 
+                       max_iter = 10^6, adapt_delta = 0.9, seed = 1234, chains = 1){
+  
+  # Running stan program to sample from posterior - initial warmup and starting to sample
+  fit = mod$sample(
+    data = data,
+    init = list(inits_list), # initialize from pathfinder values
+    refresh = refresh, # output frequency
+    iter_warmup = warmup_iter, # warm-up iterations
+    iter_sampling = n_iter_chunk, # sampling iterations
+    seed = seed, # seed for reproducibility
+    chains = chains,
+    adapt_delta = adapt_delta,
+    save_warmup = TRUE,
+    output_dir = output_dir,
+    output_basename = paste0(basename,"_out"))
+  
+  total_draws <- n_iter_chunk
+  chunk <- 1
+  converged <- FALSE
+  
+  # Get inits to start sampling by checkpoints
+  draws <- posterior::as_draws_df(fit$draws())
+  last_init <- get_last_draws_for_init(draws)
+  
+  # Add draws to list
+  all_draws[[1]] <- draws
+  
+  # Extract diagnostics information from fit object
+  all_diagnostics[[1]] <- bayesplot::nuts_params(fit)
+  
+  # Inv_metric and step_size from warm-up
+  inv_metric <- fit$inv_metric(matrix = F)$`1`
+  step_size <- fit$metadata()$step_size_adaptation
+  
+  ############ Run checkpoints of iterations ####
+  while (!converged && total_draws < max_iter) {
+    message("Sampling chunk ", chunk)
+    
+    fit = mod$sample(
+      data = data,
+      init = list(last_init), 
+      refresh = refresh, # output frequency
+      iter_warmup = 0, # no warmup, only onto sampling
+      iter_sampling = n_iter_chunk, # sampling iterations
+      seed = seed, # seed for reproducibility
+      chains = chains,
+      adapt_delta = adapt_delta,
+      adapt_engaged = FALSE,
+      step_size = step_size,
+      inv_metric = inv_metric)
+    
+    draws <- posterior::as_draws_df(fit$draws())
+    all_draws[[chunk+1]] <- draws
+    
+    # Combine all draws so far to assess convergence - save cumulative draws at each checkpoint
+    draws_df <- bind_rows(all_draws)
+    draws_df$.iteration <- c(1:nrow(draws_df))
+    draws_df$.draw <- c(1:nrow(draws_df))
+    save(draws_df, file = paste0(output_dir,"/",basename,"_draws.RData"))
+    
+    # Combine all diagnostics information to use for plots later
+    all_diagnostics[[chunk+1]] <- bayesplot::nuts_params(fit)
+    save(all_diagnostics, file = paste0(output_dir,"/",basename,"_diagnostics.RData"))
+    
+    # convergence check: multivariate ESS and asymptotic covariance from momentLS package
+    param_draws <- suppressWarnings(as.matrix(draws_df[,-c(1,16:18)]))
+    avar <- momentLS::mtvMLSE(param_draws)$cov
+    multi_ess <- multiESS(param_draws, covmat = avar)
+    ess_ok <- ifelse(is.na(multi_ess), F, ifelse(multi_ess > ess_check, T, F))
+    
+    message("Multivariate ESS = ", round(multi_ess, digits = 2))
+    
+    if (ess_ok) {
+      message("Converged after ", total_draws + n_iter_chunk, " iterations.")
+      converged <- TRUE
+      break
+    }
+    
+    # extract last draws to use as init for next chunk, plus inv_metric and step size from warmup
+    last_init <- get_last_draws_for_init(draws)
+    inv_metric <- fit$inv_metric(matrix = F)$`1`
+    step_size <- fit$metadata()$step_size_adaptation
+    
+    total_draws <- total_draws + n_iter_chunk
+    chunk <- chunk + 1
+  }
+}
+
+
+
+
+
+
+
 
 
 
