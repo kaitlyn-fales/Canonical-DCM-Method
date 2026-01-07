@@ -230,7 +230,7 @@ dcm_sample <- function(mod, data, inits_list, output_dir, basename, metric = c("
     save(all_diagnostics, file = paste0(output_dir,"/",basename,"_diagnostics.RData"))
     
     # convergence check: multivariate ESS and asymptotic covariance from momentLS package
-    param_draws <- suppressWarnings(as.matrix(draws_df[,-c(1,16:18)]))
+    param_draws <- suppressWarnings(as.matrix(draws_df[,2:(ncol(draws_df)-3)]))
     avar <- momentLS::mtvMLSE(param_draws)$cov
     multi_ess <- multiESS(param_draws, covmat = avar)
     ess_ok <- ifelse(is.na(multi_ess), F, ifelse(multi_ess > ess_check, T, F))
