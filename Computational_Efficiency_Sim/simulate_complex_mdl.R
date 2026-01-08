@@ -67,10 +67,10 @@ gen_input = function(times, start_time, end_time, duration,between_duration){
 struct_paramMats = function(m, n_u, idxs, nu){
   
   A = matrix(data = 0,nrow = m, ncol = m)
-  diag(A) = -0.5*exp(diag(A))
   for(i in 1:nrow(idxs$A_idxs)){
     A[idxs$A_idxs[i,1], idxs$A_idxs[i,2]] = with(nu,nu_A[i])
   }
+  diag(A) = -0.5*exp(diag(A))
   
   B = lapply(1:n_u, function(x){matrix(data = 0,nrow = m, ncol = m)})
   for(i in 1:nrow(idxs$B_idxs)){
