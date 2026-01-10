@@ -1,8 +1,11 @@
-setwd("/storage/work/krf5429/HCP_Social_Task/Output")
+#setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Output")
+
+setwd("C:/Users/kaitl/OneDrive - The Pennsylvania State University/Canonical-DCM-Method/HCP_Social_Task/Output")
 
 library(dplyr)
 library(posterior)
 library(mcmcse)
+library(momentLS)
 
 # Vector of subjects to loop through
 subjects <- c(100307,100408,101107,101309,101915,103111,103414,103818,105014,
@@ -72,14 +75,9 @@ for (i in 1:length(subjects)){
                         min_ess_tail = min(summary$ess_tail))
       
       # Get multivariate ESS
-      warning_flag <- 0
-      param_draws <- suppressWarnings(draws_df[,-c(1,16:18)])
-      ess_multi <- withCallingHandlers({
-        multiESS(param_draws)
-      }, warning = function(w) {
-        warning_flag <<- 1  # set flag if a warning occurs
-        invokeRestart("muffleWarning") # suppress printing the warning
-      })
+      param_draws <- suppressWarnings(as.matrix(draws_df[,2:(ncol(draws_df)-3)]))
+      avar <- momentLS::mtvMLSE(param_draws)$cov
+      ess_multi <- multiESS(param_draws, covmat = avar)
       
       # Convergence indicators
       convergence <- c(mcse_ok = ifelse(diag_cutoffs[1]<0.01,T,F),
@@ -103,7 +101,6 @@ for (i in 1:length(subjects)){
           avg_summary,
           diag_cutoffs,
           ess_multi = ess_multi,
-          warning_flag = warning_flag,
           convergence
         ),
         stringsAsFactors = FALSE
@@ -127,7 +124,7 @@ for (i in 1:length(subjects)){
 
 diagnostics_df <- bind_rows(diagnostic_list)
 
-setwd("/storage/work/krf5429/HCP_Social_Task")
+#setwd("/storage/work/krf5429/HCP_Social_Task")
 
-save(diagnostics_df, file = "diagnostics_compilation.RData")
+#save(diagnostics_df, file = "diagnostics_compilation.RData")
 
