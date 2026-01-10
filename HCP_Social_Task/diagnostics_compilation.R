@@ -1,6 +1,4 @@
-#setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Output")
-
-setwd("C:/Users/kaitl/OneDrive - The Pennsylvania State University/Canonical-DCM-Method/HCP_Social_Task/Output")
+setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Output")
 
 library(dplyr)
 library(posterior)
@@ -124,7 +122,7 @@ for (i in 1:length(subjects)){
 
 diagnostics_df <- bind_rows(diagnostic_list)
 
-#setwd("/storage/work/krf5429/HCP_Social_Task")
+setwd("/storage/work/krf5429/HCP_Social_Task")
 
-#save(diagnostics_df, file = "diagnostics_compilation.RData")
+save(diagnostics_df, file = "diagnostics_compilation.RData")
 
