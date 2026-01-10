@@ -1,25 +1,42 @@
 # Examining results from SPM attention to motion data across methods
 
-setwd("/storage/work/krf5429/attention_motion")
+setwd("/storage/work/krf5429/Canonical-DCM-Method/Attention_Motion")
 
 # Packages
-library(gridExtra, lib.loc = "/storage/work/krf5429/R_packages")
-library(grid, lib.loc = "/storage/work/krf5429/R_packages")
 library(RColorBrewer)
 library(ggplot2)
 library(dplyr)
+library(posterior)
+
+# Summarize results from MCMC
+load("Output/attention_motion_draws.RData")
+
+results <- summarize_draws(draws_df)
+MCMC <- cbind(results[c(5:8,12:14),c(1:2,6:7)],CI_length = abs(results$q95-results$q5)[c(5:8,12:14)])
+MCMC <- cbind(MCMC[,1],round(MCMC[,2:5], digits = 4))
+write.csv(MCMC, "MCMC_summary.csv")
+
+# To use for est vs obs - initial value means
+z0_mean <- results[15:17,1:2]
+save(z0_mean, file = "MCMC_z0_mean.RData")
+
+# To use for est vs obs - self loop param on A
+diag_A <- results[9:11,1:2]
+save(diag_A, file = "MCMC_diag_A.RData")
+
+# Trace plots
+bayesplot::mcmc_trace(draws_df[,5:14])
 
 # Load in summaries
 SPM <- read.csv("SPM_summary.csv")
 VBA <- read.csv("VBA_summary.csv")
-MCMC <- read.csv("MCMC_summary.csv")
 
 # Rename so all columns match
 names(SPM)[names(SPM) == 'X'] <- 'par'
 SPM$Method <- rep("SPM",nrow(SPM))
 VBA <- data.frame(par = SPM$par,VBA[,2:5])
 VBA$Method <- rep("VBA",nrow(VBA))
-MCMC <- data.frame(par = SPM$par,round(MCMC[,3:6], digits = 4))
+MCMC <- data.frame(par = SPM$par,MCMC[,2:5])
 MCMC$Method <- rep("Canonical DCM",nrow(MCMC))
 
 # One df with all results

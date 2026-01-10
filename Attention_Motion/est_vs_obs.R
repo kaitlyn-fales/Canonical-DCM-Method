@@ -1,9 +1,9 @@
 # Comparison of estimated signal using posterior means from each approach with observed signal
 
-setwd("/storage/work/krf5429/attention_motion")
+setwd("/storage/work/krf5429/Canonical-DCM-Method/Attention_Motion")
 
 library(deSolve)
-library(R.matlab, lib.loc = "/storage/work/krf5429/R_packages")
+library(R.matlab)
 
 # Load in posterior means (MCMC)
 MCMC <- read.csv("MCMC_summary.csv")
@@ -12,13 +12,12 @@ MCMC_means <- MCMC$mean
 # Load in posterior means - initial condition (MCMC)
 load("MCMC_z0_mean.RData")
 
+# Load in posterior means - diag(A) (MCMC)
+load("MCMC_diag_A.RData")
+
 # Load in predicted signals (SPM)
 y_pred_SPM <- readMat("y_pred_SPM.mat")
 y_pred_SPM <- y_pred_SPM$y.pred
-
-# Load in raw observed signals (data pre-detrending and scaling)
-#y_obs <- readMat("y_obs_raw.mat")
-#y_obs <- cbind(y_obs$V1.BOLD,y_obs$V5.BOLD,y_obs$SPC.BOLD)
 
 # Load in observed signals (data)
 load("motion_dat.RData")
@@ -26,38 +25,46 @@ u <- rbind(0,motion_dat$u)
 times <- c(0,motion_dat$times)
 y_obs <- motion_dat$y_obs
 
-##########################################################################
-# Get estimated signal based on posterior mean parameters
-
-# Posterior means - canonical
-nu_A = MCMC_means[1:4]
-nu_B = MCMC_means[5:6]
-nu_C = MCMC_means[7]
-
-##########################################################################
-
-# Putting together to form U matrix of experimental inputs
-input_u = function(t){
-  c(approxfun(x = times,y = u[,1],rule = 2)(t),
-    approxfun(x = times,y = u[,2],rule = 2)(t),
-    approxfun(x = times,y = u[,3],rule = 2)(t))
-}
-
 # 3 nodes, 3 experimental inputs
 m = 3; n_u = 3
 
-# Introduce parameters
-A = diag(x = rep(-0.5,m))
-B = lapply(1:n_u, function(i){matrix(data=0,nrow=m, ncol=m)})
-C = matrix(data = 0,nrow = m,ncol = n_u)
+# Indices of parameters
+A_idxs <- matrix(c(1,2,
+                   2,1,
+                   2,3,
+                   3,2,
+                   1,1,
+                   2,2,
+                   3,3), byrow = T, ncol = 2)
+B_idxs <- matrix(c(2,2,1,
+                   3,2,1), byrow = T, ncol = 3)
+C_idxs <- matrix(c(1,1), byrow = T, ncol = 2)
 
-A[1,2] = nu_A[1]
-A[2,1] = nu_A[2]
-A[2,3] = nu_A[3]
-A[3,2] = nu_A[4]
-B[[2]][2,1] = nu_B[1]
-B[[3]][2,1] = nu_B[2]
-C[1,1] = nu_C
+idxs <- list(A_idxs = A_idxs,
+             B_idxs = B_idxs,
+             C_idxs = C_idxs)
+
+struct_paramMats = function(m, n_u, idxs, nu){
+  
+  A = matrix(data = 0,nrow = m, ncol = m)
+  for(i in 1:nrow(idxs$A_idxs)){
+    A[idxs$A_idxs[i,1], idxs$A_idxs[i,2]] = with(nu,nu_A[i])
+  }
+  diag(A) = -0.5*exp(diag(A))
+  
+  B = lapply(1:n_u, function(x){matrix(data = 0,nrow = m, ncol = m)})
+  for(i in 1:nrow(idxs$B_idxs)){
+    B[[idxs$B_idxs[i,1]]][idxs$B_idxs[i,2], idxs$B_idxs[i,3]] = with(nu,nu_B[i])
+  }
+  
+  C = matrix(data=0, nrow = m, ncol = n_u)
+  for(i in 1:nrow(idxs$C_idxs)){
+    C[idxs$C_idxs[i,1], idxs$C_idxs[i,2]] = with(nu,nu_C[i])
+  }
+  
+  return(list(A=A,B=B,C=C))
+  
+}
 
 # ODE for neural activation that needs to be solved
 linear <- function(t, z, params, input) {
@@ -68,49 +75,57 @@ linear <- function(t, z, params, input) {
   C = params[["C"]]
   u = matrix(input(t),ncol=1)
   B_all = Reduce("+",lapply(1:nrow(u), function(i) u[i,1]*B[[i]]))
-  #B_all = do.call("+", lapply(1:nrow(u), function(i) u[i,1]*B[[i]])) 
   dz <- (A+B_all)%*%z + C%*%u
   return(list(dz))
 }
 
-# Initial value
-z0 <- z0_mean$mean # initial neuronal activity of 0Hz
+# Putting together to form U matrix of experimental inputs
+input_u = function(t){
+  c(approxfun(x = times,y = u[,1],rule = 2)(t),
+    approxfun(x = times,y = u[,2],rule = 2)(t),
+    approxfun(x = times,y = u[,3],rule = 2)(t))
+}
+
+##########################################################################
+# Get estimated signal based on posterior mean parameters (MCMC)
+
+# Posterior means - MCMC
+nu_A = c(MCMC_means[1:4],diag_A$mean)
+nu_B = MCMC_means[5:6]
+nu_C = MCMC_means[7]
+
+nu <- list(nu_A, nu_B, nu_C)
+
+# Initial value - MCMC
+z0 <- z0_mean$mean 
 
 # Model params
-params <- list(A = A, B = B, C = C)
+paramMats = struct_paramMats(m = m,n_u = n_u,idxs = idxs,nu = nu)
 
 # Solve the ODE for z
-out_z <- ode(y = z0, times = times, func = linear, parms = params, input = input_u)
+out_z <- ode(y = z0,
+             times = times,
+             func = linear,
+             parms= with(paramMats, list(A=A, B=B, C=C)),
+             input = input_u,
+             atol = 1e-6, 
+             rtol = 1e-6
+)
 diagnostics(out_z)
 
 # Get rid of first column of z (same as times)
 out_z <- out_z[,-1]
 
-# Plotting resulting z
-par(mfrow = c(1,1))
-plot(times,out_z[,1],type = 'l',xlab = "Time (seconds)",
-     ylab = "z", main = "Neural Activation", ylim = c(-4,9))
-lines(times,out_z[,2],type = 'l',col = 2)
-lines(times,out_z[,3],type = 'l',col = 3)
+##########################################################################
 
 ######### Hemodynamic model #####################################
 # hrf function (using the difference of two gammas - canonical)
-hrf <- function(t, par = c(6,1,12,1,0.35)){
-  result <- dgamma(x = t, shape = par[1],rate = par[2]) - 
-    par[5]*dgamma(x = t,shape = par[3],rate = par[4])
-  return(result)
+HRF = function(t){dgamma(x = t, shape = 6,rate = 1) - (1/6)*dgamma(x = t,shape = 16,rate = 1)}
+HRF_mu = function(mu,tp){
+  convolve(mu, rev(HRF(tp)),type="open")[1:length(tp)]
 }
 
-# Convolution of neaural activation and hrf function
-get_y <- function(z,time,par){
-  convolution <- convolve(z, rev(hrf(time)), type = "open")[1:length(time)]
-  return(convolution)
-}
-
-y_pred <- matrix(NA, nrow = length(times)-1, ncol = m)
-for (i in 1:m){
-  y_pred[,i] <- get_y(out_z[-1,i],times[-1])
-}
+y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
 ##########################################################################
 
 
