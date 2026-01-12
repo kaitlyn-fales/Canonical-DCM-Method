@@ -151,17 +151,49 @@ lines(x = times, y = u[,3]/4, type = 'l',col = 'black')
 mtext("Estimated vs. Observed Signal (y) Comparison Between MCMC and SPM", 
       line = -1.5, outer = T)
 
-# V1
-mean((y_obs[,1] - y_pred[,1])^2)
-mean((y_obs[,1] - y_pred_SPM[,1])^2)
+# Calculate MSE and boostrapped SE
+bootstrap_mse <- function(y_obs, y_pred, B = 10000, seed = 1234) {
+  stopifnot(length(y_obs) == length(y_pred))
+  set.seed(seed)
+  
+  # point estimate
+  mse <- mean((y_obs - y_pred)^2)
+  
+  # bootstrap replicates
+  n <- length(y_obs)
+  mse_boot <- replicate(B, {
+    idx <- sample(seq_len(n), replace = TRUE)
+    mean((y_obs[idx] - y_pred[idx])^2)
+  })
+  
+  # standard error and CI
+  se <- sd(mse_boot)
+  ci <- quantile(mse_boot, c(0.025, 0.975))
+  
+  out <- data.frame(
+    MSE = mse,
+    SE = se,
+    CI_lower = ci[1],
+    CI_upper = ci[2]
+  )
+  
+  out[] <- lapply(out, round, digits = 4)
+  out
+}
 
-# V5
-mean((y_obs[,2] - y_pred[,2])^2)
-mean((y_obs[,2] - y_pred_SPM[,2])^2)
+results <- list(
+  V1_MCMC = bootstrap_mse(y_obs[,1], y_pred[,1]),
+  V1_SPM  = bootstrap_mse(y_obs[,1], y_pred_SPM[,1]),
+  V5_MCMC = bootstrap_mse(y_obs[,2], y_pred[,2]),
+  V5_SPM  = bootstrap_mse(y_obs[,2], y_pred_SPM[,2]),
+  SPC_MCMC = bootstrap_mse(y_obs[,3], y_pred[,3]),
+  SPC_SPM  = bootstrap_mse(y_obs[,3], y_pred_SPM[,3])
+)
 
-# SPC
-mean((y_obs[,3] - y_pred[,3])^2)
-mean((y_obs[,3] - y_pred_SPM[,3])^2)
+# Combine all into one tidy data frame
+results_df <- do.call(rbind, results)
+results_df
+
 
 
 
