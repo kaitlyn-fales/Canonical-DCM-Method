@@ -122,7 +122,7 @@ for (i in 1:length(subjects)){
 
 diagnostics_df <- bind_rows(diagnostic_list)
 
-setwd("/storage/work/krf5429/HCP_Social_Task")
+setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Analysis")
 
 save(diagnostics_df, file = "diagnostics_compilation.RData")
 
