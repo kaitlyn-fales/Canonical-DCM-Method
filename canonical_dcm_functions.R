@@ -74,7 +74,7 @@ get_last_draws_for_init <- function(draws) {
 
 # Function to structure list data into Stan input data for model
 get_stan_dat <- function(data, hypothesis_idxs, ode_solver_type = 1, tol = 10^{-5},
-                         sigma_nu = 1, sigma_nu_self = 0.125, rate_sigma = 0.5, 
+                         sigma_nu = 1, sigma_nu_self = 0.125, rate_sigma = 1, 
                          sigma_z0 = 0.3, conv = 1, max_num_steps = 10^6){
   # Assumes input data object is list with following structure:
   #   times: T x 1 vector with the time index, separated by TR (seconds)
@@ -120,6 +120,15 @@ get_stan_dat <- function(data, hypothesis_idxs, ode_solver_type = 1, tol = 10^{-
   return(stan_dat)
 }
 
+# Function to get the number of parameters to estimate - used to calculate required ESS for convergence
+get_num_param <- function(data){
+  num_nu <- data$d_A + data$d_B + data$d_C
+  num_sigma_z0_beta <- 3*data$m
+  num_param <- num_nu + num_sigma_z0_beta
+  
+  return(num_param)
+}
+
 # Function for using variational Pathfinder to get initial values list, or specifying init = 0 for error
 get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
   
@@ -159,7 +168,7 @@ get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
 }
 
 # Function for running HMC NUTS sampler for warmup iterations and then sampling until convergence by multivariate ESS
-dcm_sample <- function(mod, data, inits_list, output_dir, basename, metric = c("diag_e","dense_e"),
+dcm_sample <- function(mod, data, inits_list, output_dir, basename, metric = c("dense_e","diag_e"),
                        refresh = 100, warmup_iter = 5000, n_iter_chunk = 1000, 
                        max_iter = 10^6, adapt_delta = 0.9, seed = 1234, chains = 1){
   
