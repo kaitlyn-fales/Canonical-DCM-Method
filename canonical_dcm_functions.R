@@ -74,7 +74,7 @@ get_last_draws_for_init <- function(draws) {
 
 # Function to structure list data into Stan input data for model
 get_stan_dat <- function(data, hypothesis_idxs, ode_solver_type = 1, tol = 10^{-5},
-                         sigma_nu = 1, sigma_nu_self = 0.125, rate_sigma = 1, 
+                         sigma_nu = 1, sigma_nu_self = 0.125, rate_sigma = 0.5, 
                          sigma_z0 = 0.3, conv = 1, max_num_steps = 10^6){
   # Assumes input data object is list with following structure:
   #   times: T x 1 vector with the time index, separated by TR (seconds)
