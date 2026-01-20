@@ -5,7 +5,6 @@
 #SBATCH --mem-per-cpu=4gb
 #SBATCH --time=24:00:00
 #SBATCH --account=open
-#SBATCH --partition=open
 #SBATCH --output=Output/balloon_mdl_diagA_%a.out
 #SBATCH --array=1-5
 
