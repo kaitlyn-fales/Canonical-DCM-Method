@@ -26,9 +26,6 @@ sub <- sub("sub-(.*)_phaseLR_maskR\\.RData", "\\1", basename(data_file))
 output_dir <- "Output"
 basename <- paste0("sub-",sub,"_phase",phase,"_mask",mask_type)
 
-# Convergence check specs - 90% intervals with 5% tolerance
-ess_check <- as.numeric(minESS(14, alpha = 0.1, eps = 0.05))
-
 # Source functions from parent directory
 source("../canonical_dcm_functions.R")
 
@@ -58,6 +55,10 @@ idxs <- list(A_idxs = A_idxs,
 
 # Put data into form for sampler
 stan_dat <- get_stan_dat(dat, idxs)
+
+# Convergence check specs - 90% intervals with 5% tolerance
+num_param <- get_num_param(stan_dat)
+ess_check <- as.numeric(minESS(num_param, alpha = 0.1, eps = 0.05))
 ###############################################
 
 ########### Initialize sampler ################
@@ -66,7 +67,8 @@ pathfinder_inits <- list(sigma = c(1,1),
                          nu_A = c(0,0,1,1),
                          nu_B = c(1.22,0.16,-0.03,-0.19),
                          nu_C = c(0.96,-0.06),
-                         z0 = c(0.1,0.1))
+                         z0 = c(0.1,0.1),
+                         beta = c(0,0))
 
 # Use pathfinder to get good initial values
 inits_list <- get_initial_vals(canonical_dcm, stan_dat, pathfinder_init = pathfinder_inits)
@@ -79,7 +81,7 @@ dcm_sample(mod = canonical_dcm,
            basename = basename,
            metric = "dense_e",
            refresh = 100,
-           warmup_iter = 3000,
+           warmup_iter = 5000,
            n_iter_chunk = 1000,
            max_iter = 100000,
            adapt_delta = 0.9,
