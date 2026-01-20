@@ -4,8 +4,7 @@
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=4gb
 #SBATCH --time=48:00:00
-#SBATCH --account=open
-#SBATCH --partition=open
+#SBATCH --account=statsresearch_sc_default
 #SBATCH --output=Output/complex_mdl_ckrk_diag_var_%a.out
 #SBATCH --array=1-5
 
