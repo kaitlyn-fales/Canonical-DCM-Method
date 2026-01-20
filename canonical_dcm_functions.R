@@ -75,7 +75,7 @@ get_last_draws_for_init <- function(draws) {
 # Function to structure list data into Stan input data for model
 get_stan_dat <- function(data, hypothesis_idxs, ode_solver_type = 1, tol = 10^{-5},
                          sigma_nu = 1, sigma_nu_self = 0.125, rate_sigma = 0.5, 
-                         rate_z0 = 2, conv = 1, max_num_steps = 10^6){
+                         sigma_z0 = 0.3, conv = 1, max_num_steps = 10^6){
   # Assumes input data object is list with following structure:
   #   times: T x 1 vector with the time index, separated by TR (seconds)
   #   u: T x n_u matrix encoding the timing of experimental stimuli
@@ -104,7 +104,7 @@ get_stan_dat <- function(data, hypothesis_idxs, ode_solver_type = 1, tol = 10^{-
                        sigma_nu = sigma_nu,
                        sigma_nu_self = sigma_nu_self,
                        rate_sigma = rate_sigma,
-                       rate_z0 = rate_z0,
+                       sigma_z0 = sigma_z0,
                        A_idxs = hypothesis_idxs$A_idxs,
                        B_idxs = hypothesis_idxs$B_idxs,
                        C_idxs = hypothesis_idxs$C_idxs,
@@ -127,7 +127,8 @@ get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
                                                               nu_A = rep(0,data$d_A),
                                                               nu_B = rep(0,data$d_B),
                                                               nu_C = rep(0,data$d_C),
-                                                              z0 = rep(0.1,data$m))}
+                                                              z0 = rep(0.1,data$m),
+                                                              beta = rep(0,data$m))}
   
   # tryCatch loop for initial value specification
   inits_list <- tryCatch(
@@ -148,7 +149,8 @@ get_initial_vals <- function(mod, data, pathfinder_init = NULL, num_paths = 1){
                                  nu_A = rep(0,data$d_A),
                                  nu_B = rep(0,data$d_B),
                                  nu_C = rep(0,data$d_C),
-                                 z0 = rep(0.1,data$m)))
+                                 z0 = rep(0.1,data$m),
+                                 beta = rep(0,data$m)))
       result_backup
     }
   )

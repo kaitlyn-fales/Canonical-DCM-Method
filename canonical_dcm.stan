@@ -230,10 +230,10 @@ data {
   array[T] vector[m] y_obs; // observed vectors
   matrix[T,n_u] u; // input vectors
   int<lower = 0, upper = 1> conv; // whether the input is convolved with HRF
-  real<lower = 0> sigma_nu;
-  real<lower = 0> sigma_nu_self;
-  real<lower = 0> rate_sigma;
-  real<lower = 0> rate_z0;
+  real<lower = 1e-3> sigma_nu;
+  real<lower = 1e-3> sigma_nu_self;
+  real<lower = 1e-3> sigma_z0;
+  real<lower = 1e-3> rate_sigma;
   real rel_tol;
   real abs_tol;
   int max_num_steps;
@@ -245,11 +245,12 @@ transformed data {
 }
 
 parameters {
-  array[m] real<lower=0> sigma; // noise
+  array[m] real<lower=1e-3> sigma; // noise
   vector[d_A] nu_A; //parameter in A
   vector[d_B] nu_B; //parameter in A
   vector[d_C] nu_C; //parameter in C
-  vector<lower=0>[m] z0;    // initial condition to be inferred
+  vector<lower=1e-3>[m] z0;    // initial condition to be inferred
+  vector[m] beta;
 }
 
 transformed parameters { 
@@ -349,14 +350,15 @@ model {
   }
   
   nu_C ~ normal(0,sigma_nu);
-  z0 ~ exponential(rate_z0);
+  z0 ~ normal(0,sigma_z0);
+  beta ~ normal(0, 1);
    
   }
   profile("likelihood"){
   // likelihood
   
   for (t in 1:T) {
-      y_obs[t] ~ normal(HRF_mu_v[t], sigma);
+      y_obs[t] ~ normal(HRF_mu_v[t] + beta, sigma);
   }
   }
 }
