@@ -50,11 +50,11 @@ fit = canonical_dcm$sample(
   data = stan_dat,
   init = list(inits_list), 
   refresh = 20, # output frequency
-  iter_warmup = 3000, # warm-up iterations
-  iter_sampling = 5000, # sampling iterations
+  iter_warmup = 5000, # warm-up iterations
+  iter_sampling = 3000, # sampling iterations
   seed = index, # seed for reproducibility
   chains = 1,
-  adapt_delta = 0.8,
+  adapt_delta = 0.9,
   save_warmup = TRUE, 
   metric = "dense_e") 
 
