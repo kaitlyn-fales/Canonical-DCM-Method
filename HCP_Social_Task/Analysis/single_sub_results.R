@@ -5,6 +5,7 @@ library(tidyverse)
 library(R.matlab)
 library(RColorBrewer)
 library(Cairo)
+library(deSolve)
 
 # Load diagnostics df after running diagnostics_EDA.R
 load("diagnostics_compilation_final.RData")
