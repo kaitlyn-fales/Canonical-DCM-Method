@@ -11,9 +11,6 @@ load("motion_dat.RData")
 output_dir <- "Output"
 basename <- paste0("attention_motion")
 
-# Convergence check specs - 90% intervals with 5% tolerance
-ess_check <- as.numeric(minESS(16, alpha = 0.1, eps = 0.05))
-
 # Source functions from parent directory
 source("../canonical_dcm_functions.R")
 
@@ -40,6 +37,10 @@ idxs <- list(A_idxs = A_idxs,
 # Put data into form for sampler
 stan_dat <- get_stan_dat(motion_dat, idxs)
 
+# Convergence check specs - 90% intervals with 5% tolerance
+num_param <- get_num_param(stan_dat)
+ess_check <- as.numeric(minESS(num_param, alpha = 0.1, eps = 0.05))
+
 # Use pathfinder to get good initial values
 inits_list <- get_initial_vals(canonical_dcm, stan_dat) 
 
@@ -51,7 +52,7 @@ dcm_sample(mod = canonical_dcm,
            basename = basename,
            metric = "dense_e",
            refresh = 100,
-           warmup_iter = 3000,
+           warmup_iter = 5000,
            n_iter_chunk = 1000,
            max_iter = 100000,
            adapt_delta = 0.9,
