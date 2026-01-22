@@ -1,29 +1,34 @@
 # Comparison of estimated signal using posterior means from each approach with observed signal
 
-setwd("/storage/work/krf5429/Canonical-DCM-Method/Attention_Motion")
-
 library(deSolve)
 library(R.matlab)
 
 # Load in posterior means (MCMC)
-MCMC <- read.csv("MCMC_summary.csv")
+MCMC <- read.csv("Attention_Motion/Output/MCMC_summary.csv")
 MCMC_means <- MCMC$mean
 
 # Load in posterior means - initial condition (MCMC)
-load("MCMC_z0_mean.RData")
+load("Attention_Motion/Output/MCMC_z0_mean.RData")
 
 # Load in posterior means - diag(A) (MCMC)
-load("MCMC_diag_A.RData")
+load("Attention_Motion/Output/MCMC_diag_A.RData")
+
+# Load in beta - (MCMC)
+load("Attention_Motion/Output/beta.RData")
 
 # Load in predicted signals (SPM)
-y_pred_SPM <- readMat("y_pred_SPM.mat")
+y_pred_SPM <- readMat("Attention_Motion/SPM_VBA_Comparison/y_pred_SPM.mat")
 y_pred_SPM <- y_pred_SPM$y.pred
 
 # Load in observed signals (data)
-load("motion_dat.RData")
+load("Attention_Motion/motion_dat.RData")
 u <- rbind(0,motion_dat$u)
 times <- c(0,motion_dat$times)
 y_obs <- motion_dat$y_obs
+
+# Compute SPM predicted shift (beta) - not available from program directly
+beta_offset <- colMeans(y_obs - y_pred_SPM)
+y_pred_SPM <- sweep(y_pred_SPM, 2, beta_offset, "+")
 
 # 3 nodes, 3 experimental inputs
 m = 3; n_u = 3
@@ -99,6 +104,9 @@ nu <- list(nu_A, nu_B, nu_C)
 # Initial value - MCMC
 z0 <- z0_mean$mean 
 
+# Constant shift beta - MCMC
+beta <- beta$mean
+
 # Model params
 paramMats = struct_paramMats(m = m,n_u = n_u,idxs = idxs,nu = nu)
 
@@ -125,31 +133,45 @@ HRF_mu = function(mu,tp){
   convolve(mu, rev(HRF(tp)),type="open")[1:length(tp)]
 }
 
+# Convolve with HRF
 y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
+
+# Apply constant shift as estimated by beta
+y_pred = sweep(y_pred, 2, beta, "+")
 ##########################################################################
 
 
 titles <- c("V1","V5","SPC")
-xlabs <- c("","","Time (Seconds)")
+xlabs <- c("Time (Seconds)","Time (Seconds)","Time (Seconds)")
 
-par(mfrow = c(4,1), mar = c(2,4,4.5,1.5))
+par(mfrow = c(4,1), mar = c(4.5,6,4.5,1.5))
 for (i in 1:ncol(y_pred)){
   plot(times[-1],y_obs[,i],type = 'l',xlab = xlabs[i],
        ylab = "BOLD Response", 
        ylim = c(min(c(y_obs[,i],y_pred[,i],y_pred_SPM[,i])),
                 max(c(y_obs[,i],y_pred[,i],y_pred_SPM[,i]))), col = "black",
-       main = titles[i], lty = "dotted")
+       main = titles[i], lty = "dotted",
+       cex.axis = 1.3,    
+       cex.lab = 1.4,    
+       cex.main = 1.6,    
+       font.axis = 2,      
+       font.lab = 2,       
+       font.main = 2)
   lines(times[-1],y_pred[,i],type = 'l',col = "blue")
   lines(times[-1],y_pred_SPM[,i],type = 'l',col = "red")
 }
 # Plot experimental design
 plot(1, type="n", xlab = "Time (Seconds)", ylab="", yaxt = 'n', frame.plot = F,
-     xlim=c(0,times[361]), ylim=c(0,1), main = "Experimental Design")
+     xlim=c(0,times[361]), ylim=c(0,1), main = "Experimental Design",
+     cex.axis = 1.3,    
+     cex.lab = 1.4,    
+     cex.main = 1.6,    
+     font.axis = 2,      
+     font.lab = 2,       
+     font.main = 2)
 lines(x = times, y = u[,1], type = 'l',col = 'black', lty = 3)
 lines(x = times, y = u[,2]/2, type = 'l',col = 'black', lty = 2)
 lines(x = times, y = u[,3]/4, type = 'l',col = 'black')
-mtext("Estimated vs. Observed Signal (y) Comparison Between MCMC and SPM", 
-      line = -1.5, outer = T)
 
 # Calculate MSE and boostrapped SE
 bootstrap_mse <- function(y_obs, y_pred, B = 10000, seed = 1234) {

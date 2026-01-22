@@ -1,29 +1,27 @@
 # Comparison of estimated signal using posterior means from each approach with observed signal
 
-setwd("/storage/work/krf5429/Canonical-DCM-Method/Attention_Motion")
-
 library(deSolve)
 library(R.matlab)
 
 # Load in posterior means (MCMC)
-MCMC <- read.csv("MCMC_summary.csv")
+MCMC <- read.csv("Attention_Motion/Output/MCMC_summary.csv")
 MCMC_means <- MCMC$mean
 
 # Load in posterior means - initial condition (MCMC)
-load("MCMC_z0_mean.RData")
+load("Attention_Motion/Output/MCMC_z0_mean.RData")
 
 # Load in posterior means - diag(A) (MCMC)
-load("MCMC_diag_A.RData")
+load("Attention_Motion/Output/MCMC_diag_A.RData")
 
 # Load in posterior means (SPM)
-SPM <- read.csv("SPM_summary.csv")
+SPM <- read.csv("Attention_Motion/SPM_VBA_Comparison/SPM_summary.csv")
 SPM_means <- SPM$mean
 
 # Load in posterior means - diag(A) (SPM)
-SPM_diag_A <- read.csv("SPM_diag_A.csv")
+SPM_diag_A <- read.csv("Attention_Motion/SPM_VBA_Comparison/SPM_diag_A.csv")
 
 # Load in observed signals (data)
-load("motion_dat.RData")
+load("Attention_Motion/motion_dat.RData")
 u <- rbind(0,motion_dat$u)
 times <- c(0,motion_dat$times)
 y_obs <- motion_dat$y_obs
@@ -162,20 +160,24 @@ assign("SPM_out_z", out_z)
 # Plotting results
 
 titles <- c("V1","V5","SPC")
-xlabs <- c("","","Time (Seconds)")
+xlabs <- c("Time (Seconds)","Time (Seconds)","Time (Seconds)")
 
 # Plotting resulting z
-par(mfrow = c(3,1), mar = c(2,4,4.5,1.5))
+par(mfrow = c(3,1), mar = c(4.5,6,4.5,1.5))
 for (i in 1:ncol(MCMC_out_z)){
   plot(times[-1],MCMC_out_z[-1,i],type = 'l',xlab = xlabs[i],
        ylab = "Neural Signal", 
        ylim = c(min(c(MCMC_out_z[-1,i],SPM_out_z[-1,i])),
                 max(c(MCMC_out_z[-1,i],SPM_out_z[-1,i]))), col = "blue",
-       main = titles[i])
+       main = titles[i],
+       cex.axis = 1.3,    
+       cex.lab = 1.4,    
+       cex.main = 1.6,    
+       font.axis = 2,      
+       font.lab = 2,       
+       font.main = 2)
   lines(times[-1],SPM_out_z[-1,i],type = 'l',col = "red")
 }
-mtext("Estimated Neural Signal (z) Comparison Between MCMC and SPM", 
-      line = -1.5, outer = T)
 
 
 

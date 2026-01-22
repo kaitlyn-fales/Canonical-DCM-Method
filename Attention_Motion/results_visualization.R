@@ -22,6 +22,10 @@ save(z0_mean, file = "Attention_Motion/Output/MCMC_z0_mean.RData")
 diag_A <- results[9:11,1:2]
 save(diag_A, file = "Attention_Motion/Output/MCMC_diag_A.RData")
 
+# To use for est vs obs - beta
+beta <- results[18:20,1:2]
+save(beta, file = "Attention_Motion/Output/beta.RData")
+
 # Trace plots
 bayesplot::mcmc_trace(draws_df[,5:14])
 
