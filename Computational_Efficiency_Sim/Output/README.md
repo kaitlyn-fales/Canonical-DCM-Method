@@ -1,0 +1,1 @@
+This is an empty directory to store the results and outputs from the simulation study.
