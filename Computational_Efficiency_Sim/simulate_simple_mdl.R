@@ -1,5 +1,3 @@
-setwd("/storage/work/krf5429/Canonical-DCM-Method/Computational_Efficiency_Sim")
-
 # Simulating from the complex model with the diag(A) fixed to -0.5
 remove(list=ls())
 
@@ -229,7 +227,7 @@ mtext(paste("Convolved True Signal (Solid) and Noisy Observations (Dashed) at SN
 
 # Save/export data
 dat <- list(times = times[-1], u = u, y_obs = y_obs)
-save(dat, file = "dat_simple_mdl_diag_fix.RData")
+save(dat, file = "Computational_Efficiency_Sim/Data/dat_simple_mdl_diag_fix.RData")
 
 ############################
 # Structural identifiability check
@@ -483,7 +481,7 @@ mtext(paste("Convolved True Signal (Solid) and Noisy Observations (Dashed) at SN
 
 # Save/export data
 dat <- list(times = times[-1], u = u, y_obs = y_obs)
-save(dat, file = "dat_simple_mdl_diag_var.RData")
+save(dat, file = "Computational_Efficiency_Sim/Data/dat_simple_mdl_diag_var.RData")
 
 ############################
 # Structural identifiability check

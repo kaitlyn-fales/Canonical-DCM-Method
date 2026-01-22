@@ -12,7 +12,7 @@ if(length(args)==0){
 suppressPackageStartupMessages(library(tidyverse))
 
 # Load in simulated data
-load("dat_simple_mdl_diag_fix.RData")
+load("Data/dat_simple_mdl_diag_fix.RData")
 
 # Set up hypotheses
 idxs = list(A_idxs = matrix(c(2,1,
