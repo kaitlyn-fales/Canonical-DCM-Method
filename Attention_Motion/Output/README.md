@@ -1,0 +1,1 @@
+This is an empty directory to store the Attention to Motion results and outputs.
