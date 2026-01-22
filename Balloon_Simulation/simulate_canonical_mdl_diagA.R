@@ -228,7 +228,7 @@ mtext(paste("Convolved True Signal (Solid) and Noisy Observations (Dashed) at SN
 
 # Save/export data
 dat <- list(times = times[-1], u = u, y_obs = y_obs)
-save(dat, file = "canonical_sim_data_diagA.RData")
+save(dat, file = "Balloon_Simulation/Data/canonical_sim_data_diagA.RData")
 
 ############################
 # Structural identifiability check

@@ -242,7 +242,7 @@ mtext(paste("Scaled Noisy Observations using SPM12 Hemodynamic Model at SNR = ",
 
 # Save/export data
 dat <- list(times = times[-1], u = u, y_obs = y_obs)
-save(dat, file = "balloon_sim_data_diagA.RData")
+save(dat, file = "Balloon_Simulation/Data/balloon_sim_data_diagA.RData")
 
 
 
