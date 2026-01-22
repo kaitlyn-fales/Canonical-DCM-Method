@@ -1,7 +1,5 @@
 # Examining results from SPM attention to motion data across methods
 
-setwd("/storage/work/krf5429/Canonical-DCM-Method/Attention_Motion")
-
 # Packages
 library(RColorBrewer)
 library(ggplot2)
@@ -9,27 +7,27 @@ library(dplyr)
 library(posterior)
 
 # Summarize results from MCMC
-load("Output/attention_motion_draws.RData")
+load("Attention_Motion/Output/attention_motion_draws.RData")
 
 results <- summarize_draws(draws_df)
 MCMC <- cbind(results[c(5:8,12:14),c(1:2,6:7)],CI_length = abs(results$q95-results$q5)[c(5:8,12:14)])
 MCMC <- cbind(MCMC[,1],round(MCMC[,2:5], digits = 4))
-write.csv(MCMC, "MCMC_summary.csv")
+write.csv(MCMC, "Attention_Motion/Output/MCMC_summary.csv")
 
 # To use for est vs obs - initial value means
 z0_mean <- results[15:17,1:2]
-save(z0_mean, file = "MCMC_z0_mean.RData")
+save(z0_mean, file = "Attention_Motion/Output/MCMC_z0_mean.RData")
 
 # To use for est vs obs - self loop param on A
 diag_A <- results[9:11,1:2]
-save(diag_A, file = "MCMC_diag_A.RData")
+save(diag_A, file = "Attention_Motion/Output/MCMC_diag_A.RData")
 
 # Trace plots
 bayesplot::mcmc_trace(draws_df[,5:14])
 
 # Load in summaries
-SPM <- read.csv("SPM_summary.csv")
-VBA <- read.csv("VBA_summary.csv")
+SPM <- read.csv("Attention_Motion/SPM_VBA_Comparison/SPM_summary.csv")
+VBA <- read.csv("Attention_Motion/SPM_VBA_Comparison/VBA_summary.csv")
 
 # Rename so all columns match
 names(SPM)[names(SPM) == 'X'] <- 'par'
