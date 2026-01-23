@@ -1,9 +1,9 @@
-setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Output")
-
 library(dplyr)
 library(posterior)
 library(mcmcse)
 library(momentLS)
+
+path <- paste0(getwd(),"/HCP_Social_Task/Output")
 
 # Vector of subjects to loop through
 subjects <- c(100307,100408,101107,101309,101915,103111,103414,103818,105014,
@@ -37,7 +37,7 @@ for (i in 1:length(subjects)){
     for (j in 1:nrow(combos)){
     
       # Load output diagnostic file
-      load(paste0("sub-",subjects[i],"_phase",combos$phase[j],"_mask",combos$mask[j],"_diagnostics.RData"))
+      load(paste0(path,"/sub-",subjects[i],"_phase",combos$phase[j],"_mask",combos$mask[j],"_diagnostics.RData"))
       
       # Put in large df
       all_diagnostics <- do.call(rbind, do.call(c, lapply(all_diagnostics, function(x) if (is.data.frame(x)) list(x) else x)))
@@ -62,7 +62,7 @@ for (i in 1:length(subjects)){
       stepsize <- as.numeric(all_diagnostics %>% filter(Parameter == "stepsize__") %>% head(n = 1) %>% select(Value))
       
       # Load in output draws file
-      load(paste0("sub-",subjects[i],"_phase",combos$phase[j],"_mask",combos$mask[j],"_draws.RData"))
+      load(paste0(path,"/sub-",subjects[i],"_phase",combos$phase[j],"_mask",combos$mask[j],"_draws.RData"))
       
       # Get summary of param except lp_
       summary <- summarize_draws(draws_df, mcse_mean, ess_bulk, ess_tail)[-1,-1]
@@ -81,8 +81,8 @@ for (i in 1:length(subjects)){
       convergence <- c(mcse_ok = ifelse(diag_cutoffs[1]<0.01,T,F),
                        ess_bulk_ok = ifelse(diag_cutoffs[2]>100,T,F),
                        ess_tail_ok = ifelse(diag_cutoffs[3]>100,T,F),
-                       ess_multi_good = ifelse(ess_multi>7831,T,F),
-                       ess_multi_ok = ifelse(ess_multi>1958,T,F))
+                       ess_multi_good = ifelse(ess_multi>7859,T,F),
+                       ess_multi_ok = ifelse(ess_multi>1965,T,F))
       
       # Combine into dataframe
       results <- as.data.frame.list(
@@ -122,7 +122,5 @@ for (i in 1:length(subjects)){
 
 diagnostics_df <- bind_rows(diagnostic_list)
 
-setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Analysis")
-
-save(diagnostics_df, file = "diagnostics_compilation.RData")
+save(diagnostics_df, file = paste0(path,"/../Analysis/diagnostics_compilation.RData"))
 
