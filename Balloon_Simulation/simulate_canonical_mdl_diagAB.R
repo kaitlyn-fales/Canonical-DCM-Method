@@ -3,6 +3,7 @@ remove(list=ls())
 # Packages
 library(expm)
 library(posterior)
+library(R.matlab)
 
 # Generating inputs
 ##########################
@@ -229,7 +230,11 @@ mtext(paste("Convolved True Signal (Solid) and Noisy Observations (Dashed) at SN
 
 # Save/export data
 dat <- list(times = times[-1], u = u, y_obs = y_obs)
-save(dat, file = "Balloon_Simulation/Data/canonical_sim_data_diagAB.RData")
+
+# Write observed signal to a MATLAB file for SPM
+writeMat("Balloon_Simulation/Data/canonical_sim_data_diagAB.mat",
+         U = dat$u,
+         Y = dat$y_obs)
 
 ############################
 # Structural identifiability check
