@@ -30,7 +30,7 @@ for i = 1:numel(conditions)
     M.X = ones(size(DCM_files, 1), 1);
     
     % 3. Parameter fields to include
-    fields = {'A', 'B', 'C'};
+    fields = {'A', 'B', 'C', 'transit', 'decay', 'epsilon'};
     
     % 4. Estimate PEB
     PEB = spm_dcm_peb(DCM_files, M, fields);
@@ -62,8 +62,11 @@ load('PEB_phaseLR_maskL.mat')
 cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
 param_names = get_param_labels(DCM, PEB);
 
+s = sqrt(diag(PEB.Cp)); 
+s = s(1:10); 
+
 % Combine into a labeled table
-results = table(param_names(:), PEB.Ep(:), sqrt(diag(PEB.Cp)), ...
+results = table(param_names(:), PEB.Ep(1:10,:), s, ...
                 'VariableNames', {'Parameter', 'Mean', 'SD'});
 
 % Define the R parameter order (names must match the R convention)
@@ -112,6 +115,11 @@ disp(msg)
 disp(results_final)
 
 writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
+
+hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
+'VariableNames',{'Parameter','Mean'});
+
+writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
 
 %% ======================
 spm_dcm_peb_review(PEB)
@@ -134,8 +142,11 @@ load('PEB_phaseLR_maskR.mat')
 cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
 param_names = get_param_labels(DCM, PEB);
 
+s = sqrt(diag(PEB.Cp)); 
+s = s(1:10); 
+
 % Combine into a labeled table
-results = table(param_names(:), PEB.Ep(:), sqrt(diag(PEB.Cp)), ...
+results = table(param_names(:), PEB.Ep(1:10,:), s, ...
                 'VariableNames', {'Parameter', 'Mean', 'SD'});
 
 % Define the R parameter order (names must match the R convention)
@@ -184,6 +195,11 @@ disp(msg)
 disp(results_final)
 
 writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
+
+hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
+'VariableNames',{'Parameter','Mean'});
+
+writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
 
 %% ======================
 spm_dcm_peb_review(PEB)
@@ -206,8 +222,11 @@ load('PEB_phaseRL_maskL.mat')
 cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
 param_names = get_param_labels(DCM, PEB);
 
+s = sqrt(diag(PEB.Cp)); 
+s = s(1:10); 
+
 % Combine into a labeled table
-results = table(param_names(:), PEB.Ep(:), sqrt(diag(PEB.Cp)), ...
+results = table(param_names(:), PEB.Ep(1:10,:), s, ...
                 'VariableNames', {'Parameter', 'Mean', 'SD'});
 
 % Define the R parameter order (names must match the R convention)
@@ -256,6 +275,11 @@ disp(msg)
 disp(results_final)
 
 writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
+
+hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
+'VariableNames',{'Parameter','Mean'});
+
+writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
 
 %% ======================
 spm_dcm_peb_review(PEB)
@@ -278,8 +302,11 @@ load('PEB_phaseRL_maskR.mat')
 cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
 param_names = get_param_labels(DCM, PEB);
 
+s = sqrt(diag(PEB.Cp)); 
+s = s(1:10); 
+
 % Combine into a labeled table
-results = table(param_names(:), PEB.Ep(:), sqrt(diag(PEB.Cp)), ...
+results = table(param_names(:), PEB.Ep(1:10,:), s, ...
                 'VariableNames', {'Parameter', 'Mean', 'SD'});
 
 % Define the R parameter order (names must match the R convention)
@@ -328,6 +355,11 @@ disp(msg)
 disp(results_final)
 
 writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
+
+hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
+'VariableNames',{'Parameter','Mean'});
+
+writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
 
 %% ======================
 spm_dcm_peb_review(PEB)
