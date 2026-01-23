@@ -1,6 +1,4 @@
 # Examine single subject differences in output parameters
-setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Analysis")
-
 library(tidyverse)
 library(R.matlab)
 library(RColorBrewer)
@@ -8,7 +6,7 @@ library(Cairo)
 library(deSolve)
 
 # Load diagnostics df after running diagnostics_EDA.R
-load("diagnostics_compilation_final.RData")
+load("HCP_Social_Task/Analysis/diagnostics_compilation_final.RData")
 
 # Summary by subject, then sample proportionally from the subjects by group
 subject_summary <- diagnostics_df %>%
@@ -36,7 +34,7 @@ sampled_subjects <- subject_summary %>%
 sampled_subjects
 
 # Choose subject - run all code below for each subject in sampled_subjects dataframe
-sub <- sampled_subjects$subject[1]
+sub <- sampled_subjects$subject[6]
 
 # Phase-encoding (run/session)
 phase <- c("LR","RL")
@@ -49,8 +47,8 @@ combos <- expand.grid(phase = phase,mask = mask_type)
 
 summaries <- list()
 for (j in 1:nrow(combos)){
-  load(paste0("../Output/sub-",sub,"_phase",combos$phase[j],"_mask",combos$mask[j],"_draws.RData"))
-  summary <- posterior::summarise_draws(draws_df)[4:15,c(1:2,6:7)]
+  load(paste0("HCP_Social_Task/Output/sub-",sub,"_phase",combos$phase[j],"_mask",combos$mask[j],"_draws.RData"))
+  summary <- posterior::summarise_draws(draws_df)[4:17,c(1:2,6:7)]
   summary <- summary %>%
     mutate(across(where(is.numeric), ~round(., digits = 3)))
   summary$phase_mask <- paste(combos$phase[j],combos$mask[j],sep = "_")
@@ -61,7 +59,7 @@ df <- bind_rows(summaries)
 
 df <- df %>%
   mutate(
-    param_group = str_extract(variable, "nu_[ABC]|z0"),
+    param_group = str_extract(variable, "nu_[ABC]|z0|beta"),
     param_index = str_extract(variable, "(?<=\\[)\\d+(?=\\])")
   )
 
@@ -87,7 +85,7 @@ ggplot(df,
     panel.grid.minor.x = element_blank()
   )
 dims <- dev.size("in") 
-ggsave(paste0("sub_",sub,"_post_means.png"))
+ggsave(paste0("HCP_Social_Task/Analysis/Results/sub_",sub,"_post_means.png"))
 
 ########### Generate predicted signal from posterior means ###############
 
@@ -154,13 +152,13 @@ input_u = function(t){
 
 ##########################################################################
 
-CairoPNG(paste0("sub_", sub, "_est_vs_obs.png"),
+CairoPNG(paste0("HCP_Social_Task/Analysis/Results/sub_", sub, "_est_vs_obs.png"),
          width = dims[1], height = dims[2], units = "in", dpi = 96)
-par(mfrow = c(2,2), mar = c(3, 4, 4, 1), oma = c(1, 1, 2, 1))
+par(mfrow = c(2,2), mar = c(4, 4, 4, 1), oma = c(2, 1, 2, 1))
 
-# Loop through combos, plot est vs obs and export to .mat file for SPM
+# Loop through combos, plot est vs obs and export
 for (j in 1:nrow(combos)){
-  load(paste0("../Data/sub-",sub,"_phase",combos$phase[j],"_mask",combos$mask[j],".RData"))
+  load(paste0("HCP_Social_Task/Data/sub-",sub,"_phase",combos$phase[j],"_mask",combos$mask[j],".RData"))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
   y_obs <- dat$y_obs
@@ -178,6 +176,9 @@ for (j in 1:nrow(combos)){
   
   # Initial value - MCMC
   z0 <- MCMC_means$mean[11:12] 
+  
+  # Constant shift beta - MCMC
+  beta <- MCMC_means$mean[13:14]
   
   # Model params
   paramMats = struct_paramMats(m = m,n_u = n_u,idxs = idxs,nu = nu)
@@ -205,6 +206,9 @@ for (j in 1:nrow(combos)){
   }
   
   y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
+  
+  # Apply constant shift as estimated by beta
+  y_pred = sweep(y_pred, 2, beta, "+")
   ##########################################################################
   
   # Choose colors for each region
@@ -216,7 +220,7 @@ for (j in 1:nrow(combos)){
   ylim_exp <- c(y_range[1], y_range[2] * 1.15)
   
   # Set up plot
-  plot(times[-1], y_obs[,1], type = "n",  # "n" means no points/lines yet
+  plot(times[-1], y_obs[,1], type = "n", 
        xlab = "Time (s)", ylab = "BOLD Response",
        ylim = ylim_exp,
        main = paste0("Phase ", combos$phase[j],
@@ -232,16 +236,21 @@ for (j in 1:nrow(combos)){
   legend("top", legend = c("V5","p-STS"), horiz = T,
          col = cols, lty = 1, lwd = 2, bty = "n")
   
-  # Save estimated signal to compare with SPM later
-  save(y_pred, file = paste0("sub_",sub,"_phase",combos$phase[j],"_mask",combos$mask[j],"_pred.RData"))
+  # Assign based on phase and mask
+  output <- list(y_obs = y_obs, y_pred = y_pred)
   
-  # Write observed signal to a MATLAB file for SPM
-  writeMat(paste0("sub_",sub,"_phase",combos$phase[j],"_mask",combos$mask[j],".mat"),
-           U = dat$u,
-           Y = dat$y_obs)
+  assign(paste0("phase",combos$phase[j],"_mask",combos$mask[j]), output)
 }
 
 # Add Subject title to plot
 mtext(paste0("Predicted (Solid) vs. Observed (Dotted): Subject ",sub), line = 0, outer = T)
 
 dev.off()
+
+# Save estimated signal to compare with SPM later
+MCMC_result <- list(phaseLR_maskL = phaseLR_maskL,
+                    phaseLR_maskR = phaseLR_maskR,
+                    phaseRL_maskL = phaseRL_maskL,
+                    phaseRL_maskR = phaseRL_maskR)
+
+save(MCMC_result, file = paste0("HCP_Social_Task/Analysis/Results/sub_",sub,"_pred_vs_obs.RData"))
