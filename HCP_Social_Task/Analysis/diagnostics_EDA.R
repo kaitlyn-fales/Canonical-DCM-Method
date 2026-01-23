@@ -1,10 +1,8 @@
-setwd("/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/Analysis")
-
 library(dplyr)
 library(mcmcse)
 library(bayesplot)
 
-load("diagnostics_compilation.RData")
+load("HCP_Social_Task/Analysis/diagnostics_compilation.RData")
 
 diagnostics_df$prop_divergence <- round(diagnostics_df$prop_divergence, digits = 2)
 diagnostics_df$prop_max_treedepth <- round(diagnostics_df$prop_max_treedepth, digits = 2)
@@ -60,13 +58,13 @@ cluster_summary <- diagnostics_df %>%
 cluster_summary
 
 # Chains that converged with no diagnostic issues
-converge_chains <- diagnostics_df %>% filter(cluster == 3)
+converge_chains <- diagnostics_df %>% filter(cluster == 1)
 
-# Chains that converged with some diagnostic issues (max treedepth)
-struggling_chains <- diagnostics_df %>% filter(cluster == 2)
+# Chains that converged with some diagnostic issues
+struggling_chains <- diagnostics_df %>% filter(cluster == 3)
 
 # Chains that really struggled and had high proportion of divergences
-bad_chains <- diagnostics_df %>% filter(cluster == 1)
+bad_chains <- diagnostics_df %>% filter(cluster == 2)
 
 ######## Examine a random sample of chain draws from each cluster to visually inspect convergence #########
 set.seed(1234)
@@ -80,8 +78,8 @@ cluster1_samp <- sample(1:nrow(temp), 5, replace = F)
 samp <- cluster1_samp
 
 # Visual inspection to identify potential issues to flag for
-i = 5
-load(paste0("Output/sub-",temp$subject[samp[i]],
+i = 1
+load(paste0("HCP_Social_Task/Output/sub-",temp$subject[samp[i]],
             "_phase",temp$phase[samp[i]],
             "_mask",temp$mask[samp[i]],"_draws.RData"))
 
@@ -99,7 +97,7 @@ samp <- cluster2_samp
 
 # Visual inspection to identify potential issues to flag for
 i = 5
-load(paste0("Output/sub-",temp$subject[samp[i]],
+load(paste0("HCP_Social_Task/Output/sub-",temp$subject[samp[i]],
             "_phase",temp$phase[samp[i]],
             "_mask",temp$mask[samp[i]],"_draws.RData"))
 
@@ -115,8 +113,8 @@ temp <- bad_chains %>% arrange(prop_divergence)
 samp <- c(1:nrow(temp))
 
 # Visual inspection
-i = 9
-load(paste0("Output/sub-",temp$subject[samp[i]],
+i = 7
+load(paste0("HCP_Social_Task/Output/sub-",temp$subject[samp[i]],
             "_phase",temp$phase[samp[i]],
             "_mask",temp$mask[samp[i]],"_draws.RData"))
 
@@ -128,7 +126,7 @@ rm(list = ls())
 
 # Determine which chains are not converged, or have poor diagnostics and should not be included in later analysis
 # Impractical to examine all chains, so provide a set of rules to follow
-load("diagnostics_compilation.RData")
+load("HCP_Social_Task/Analysis/diagnostics_compilation.RData")
 
 diagnostics_df$prop_divergence <- round(diagnostics_df$prop_divergence, digits = 2)
 diagnostics_df$prop_max_treedepth <- round(diagnostics_df$prop_max_treedepth, digits = 2)
@@ -160,4 +158,4 @@ phase_mask_summary <- diagnostics_df %>%
 
 print(phase_mask_summary)
 
-save(diagnostics_df, file = "diagnostics_compilation_final.RData")
+save(diagnostics_df, file = "HCP_Social_Task/Analysis/diagnostics_compilation_final.RData")
