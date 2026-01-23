@@ -111,6 +111,8 @@ msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
 disp(msg)
 disp(results_final)
 
+writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
+
 %% ======================
 spm_dcm_peb_review(PEB)
 
@@ -180,6 +182,8 @@ results_final.SD   = round(results_final.SD, 3);
 msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
 disp(msg)
 disp(results_final)
+
+writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
 
 %% ======================
 spm_dcm_peb_review(PEB)
@@ -251,6 +255,8 @@ msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
 disp(msg)
 disp(results_final)
 
+writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
+
 %% ======================
 spm_dcm_peb_review(PEB)
 
@@ -320,6 +326,8 @@ results_final.SD   = round(results_final.SD, 3);
 msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
 disp(msg)
 disp(results_final)
+
+writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
 
 %% ======================
 spm_dcm_peb_review(PEB)
