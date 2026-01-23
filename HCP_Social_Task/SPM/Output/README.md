@@ -1,0 +1,1 @@
+This is an empty directory to contain the SPM outputs for the HCP dataset. 

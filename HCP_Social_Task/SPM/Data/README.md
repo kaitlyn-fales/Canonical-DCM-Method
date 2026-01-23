@@ -1,0 +1,1 @@
+This is an empty directory to contain the .mat data files for the HCP dataset used in the SPM analysis. They are the same as the .RData files in the other data folder.  
