@@ -161,11 +161,11 @@ print(phase_mask_summary)
 
 save(diagnostics_df, file = "HCP_Social_Task/Analysis/diagnostics_compilation_final.RData")
 
-# Subset for use in Matlab for group level PEB
+# Subset for use in prep for group level PEB
 diagnostics_df$condition <- paste0("phase",diagnostics_df$phase,"_mask",diagnostics_df$mask)
 
-diagnostics_out <- diagnostics_df %>% select(subject,condition,converged)
+diagnostics <- diagnostics_df %>% select(subject,condition,converged) %>% filter(converged)
 
 # Export as .mat file for PEB in SPM
-writeMat("HCP_Social_Task/Analysis/MCMC_diagnostics.mat", diagnostic_dat = diagnostics_out)
+save(diagnostics, file = "HCP_Social_Task/Analysis/MCMC_diagnostics.RData")
 
