@@ -129,7 +129,7 @@ for (i in 1:nrow(diagnostics)){
     #################################################################
     
     # Save as .mat file
-    writeMat(paste0("HCP_Social_Task/Output/sub-", diagnostics$subject[i],
+    writeMat(paste0("HCP_Social_Task/Output/sub_", diagnostics$subject[i],
                     "_", diagnostics$condition[i], ".mat"),
              A = paramMats$A,
              B1 = paramMats$B[[1]],

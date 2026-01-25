@@ -159,6 +159,9 @@ phase_mask_summary <- diagnostics_df %>%
 
 print(phase_mask_summary)
 
+# Subject 499566 also has poor convergence - exclude
+diagnostics_df[365,24] <- F
+
 save(diagnostics_df, file = "HCP_Social_Task/Analysis/diagnostics_compilation_final.RData")
 
 # Subset for use in prep for group level PEB
@@ -169,3 +172,4 @@ diagnostics <- diagnostics_df %>% select(subject,condition,converged) %>% filter
 # Export as .mat file for PEB in SPM
 save(diagnostics, file = "HCP_Social_Task/Analysis/MCMC_diagnostics.RData")
 
+writeMat("HCP_Social_Task/Analysis/MCMC_diagnostics.mat", diagnostics = diagnostics)
