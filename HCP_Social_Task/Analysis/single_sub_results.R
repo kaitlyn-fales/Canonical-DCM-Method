@@ -34,7 +34,7 @@ sampled_subjects <- subject_summary %>%
 sampled_subjects
 
 # Choose subject - run all code below for each subject in sampled_subjects dataframe
-sub <- sampled_subjects$subject[6]
+sub <- sampled_subjects$subject[3]
 
 # Phase-encoding (run/session)
 phase <- c("LR","RL")
