@@ -42,28 +42,10 @@ idxs <- list(A_idxs = A_idxs,
              C_idxs = C_idxs)
 
 # Number of regions and inputs
-n_regions <- 2
-n_inputs  <- 2
+m <- 2; n_u  <- 2
 
-# Initialize empty matrices
-A_mat <- matrix(0, n_regions, n_regions)
-B_mat <- array(0, dim = c(n_inputs, n_regions, n_regions))
-C_mat <- matrix(0, n_regions, n_inputs)
-
-# Fill matrices based on your indices
-for (r in 1:nrow(A_idxs)) {
-  A_mat[A_idxs[r,1], A_idxs[r,2]] <- 1
-}
-
-for (r in 1:nrow(B_idxs)) {
-  B_mat[B_idxs[r,3], B_idxs[r,2], B_idxs[r,1]] <- 1
-}
-
-for (r in 1:nrow(C_idxs)) {
-  C_mat[C_idxs[r,1], C_idxs[r,2]] <- 1
-}
-
-struct_paramMats = function(m, n_u, idxs, nu){
+# Function for structuring raw parameters (diagonal not reparameterized)
+struct_raw_paramMats = function(m, n_u, idxs, nu){
   
   A = matrix(data = 0,nrow = m, ncol = m)
   for(i in 1:nrow(idxs$A_idxs)){
@@ -84,8 +66,13 @@ struct_paramMats = function(m, n_u, idxs, nu){
   
 } # diagonal not modified for SPM - need raw values
 
-# Extract posterior means and covariances
+# Compile stan program from parent directory
+canonical_dcm = cmdstanr::cmdstan_model("canonical_dcm.stan")
 
+# Source functions from parent directory
+source("canonical_dcm_functions.R")
+
+# Set up MCMC posterior outputs for SPM PEB
 ###############################################
 
 for (i in 1:length(subjects)){
@@ -95,17 +82,23 @@ for (i in 1:length(subjects)){
     load(paste0("HCP_Social_Task/Output/sub-", subjects[i],
                 "_phase", combos$phase[j], "_mask", combos$mask[j], "_draws.RData"))
     
+    # Load your data
+    load(paste0("HCP_Social_Task/Data/sub-", subjects[i],
+                "_phase", combos$phase[j], "_mask", combos$mask[j], ".RData"))
+    
     # Summarise posterior draws
-    summary <- posterior::summarise_draws(draws_df)[4:13, ]  
+    summary <- posterior::summarise_draws(draws_df)
     
-    # Do posterior means
-    nu = list(nu_A = summary$mean[1:4], 
-              nu_B = summary$mean[5:8], 
-              nu_C = summary$mean[9:10])
+    ############## Do posterior means for nu #########################
+    # Do posterior means for nu
+    nu = list(nu_A = summary$mean[4:7],
+              nu_B = summary$mean[8:11], 
+              nu_C = summary$mean[12:13])
     
-    paramMats <- struct_paramMats(m = n_regions, n_u = n_inputs, idxs = idxs, nu = nu)
+    paramMats <- struct_raw_paramMats(m = m, n_u = n_u, idxs = idxs, nu = nu)
+    ##################################################################
     
-    # Do posterior covariance
+    ############## Do posterior covariance ###########################
     draws_mat <- as_draws_matrix(draws_df)[,4:13]
     
     # Change order of columns of draws matrix to match the order of SPM
@@ -123,6 +116,37 @@ for (i in 1:length(subjects)){
     Cp <- round(cov(draws_mat), digits = 8)
     rownames(Cp) <- NULL
     colnames(Cp) <- NULL
+    #################################################################
+    
+    ############## Use VL to get approx free energy (ELBO) ##########
+    # Put data into form for sampler
+    stan_dat <- get_stan_dat(dat, idxs)
+    
+    # Initial values are posterior means
+    inits <- list(lp__ = c(summary$mean[1]),
+                  sigma = summary$mean[2:3],
+                  nu_A = summary$mean[4:7],
+                  nu_B = summary$mean[8:11], 
+                  nu_C = summary$mean[12:13],
+                  z0 = summary$mean[14:15],
+                  beta = summary$mean[16:17])
+    
+    pf_out <- capture.output({canonical_dcm$pathfinder(data = stan_dat, 
+                                                       init = list(inits),
+                                                       seed = 1234,
+                                                       num_paths = 1)
+                             })
+    
+    # Find the line with 'Best Iter'
+    best_line <- pf_out[grep("Best Iter:", pf_out)]
+    
+    # Extract the number after 'ELBO ('
+    elbo_val <- str_extract(best_line, "(?<=ELBO \\().*?(?=\\))")
+    
+    # Convert to numeric
+    elbo <- as.numeric(elbo_val)
+    
+    #################################################################
     
     # Save as .mat file
     writeMat(paste0("HCP_Social_Task/Output/sub_",  subjects[i], "_phase", combos$phase[j], 
@@ -131,7 +155,8 @@ for (i in 1:length(subjects)){
              B1 = paramMats$B[[1]],
              B2 = paramMats$B[[2]],
              C = paramMats$C,
-             Cp = Cp)
+             Cp = Cp,
+             DCM_F = elbo)
   }
 }
 
