@@ -1,6 +1,7 @@
 library(dplyr)
 library(mcmcse)
 library(bayesplot)
+library(R.matlab)
 
 load("HCP_Social_Task/Analysis/diagnostics_compilation.RData")
 
@@ -159,3 +160,12 @@ phase_mask_summary <- diagnostics_df %>%
 print(phase_mask_summary)
 
 save(diagnostics_df, file = "HCP_Social_Task/Analysis/diagnostics_compilation_final.RData")
+
+# Subset for use in Matlab for group level PEB
+diagnostics_df$condition <- paste0("phase",diagnostics_df$phase,"_mask",diagnostics_df$mask)
+
+diagnostics_out <- diagnostics_df %>% select(subject,condition,converged)
+
+# Export as .mat file for PEB in SPM
+writeMat("HCP_Social_Task/Analysis/MCMC_diagnostics.mat", diagnostic_dat = diagnostics_out)
+
