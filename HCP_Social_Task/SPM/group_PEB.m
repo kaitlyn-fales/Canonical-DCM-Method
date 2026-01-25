@@ -5,9 +5,8 @@
 
 clear; clc;
 addpath /storage/work/krf5429/spm 
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM/Output');  
 
-% Define your condition suffixes
+
 conditions = {'phaseLR_maskL', 'phaseLR_maskR', 'phaseRL_maskL', 'phaseRL_maskR'};
 
 % Loop through each condition
@@ -17,26 +16,70 @@ for i = 1:numel(conditions)
     fprintf('\n=== Running PEB for %s ===\n', cond);
     
     % 1. Select matching DCMs
+    path = fullfile(pwd, 'HCP_Social_Task/SPM/Output');
     pattern = sprintf('^DCM_.*_%s\\.mat$', cond);
-    DCM_files = spm_select('FPList', pwd, pattern);
+    DCM_files = spm_select('FPList', path, pattern);
     
     if isempty(DCM_files)
         warning('No DCMs found for pattern: %s', pattern);
         continue;
     end
     
-    % 2. Group mean design matrix
+    % 2. Design matrix
     M = struct();
     M.X = ones(size(DCM_files, 1), 1);
+
+    % Load CSV
+    data = readtable('HCP_Social_Task/HCP_YA_subjects.csv'); 
+    
+    % Optional: make sure 'Subject' is numeric
+    if iscell(data.Subject)
+        data.Subject = str2double(data.Subject);
+    end
+    
+    N = height(data);  % number of subjects
+    
+    % Encode gender (assuming 1=male, 2=female, adjust if needed)
+    gender = zeros(N,1);  % pre-allocate
+    for k = 1:N
+        if strcmp(data.Gender{k}, 'F')   % female = 1
+            gender(k) = 1;
+        elseif strcmp(data.Gender{k}, 'M')  % male = 0
+            gender(k) = 0;
+        else
+            error('Unknown gender: %s', data.Gender{k});
+        end
+    end
+    
+    % Encode age ranges as ordinal
+    % Define mapping
+    age_map = containers.Map({'22-25','26-30','31-35','36+'}, 1:4);
+    age_code = zeros(N,1);
+    
+    for j = 1:N
+        age_code(j) = age_map(data.Age{j});
+    end
+    
+    % Optional: z-score age
+    age_z = zscore(age_code);
+    
+    %% Z-score PMAT
+    PMAT_z = zscore(data.PMAT24_A_CR);
+  
+    % Include intercept + covariates
+    M.X = [ones(N,1), gender, age_z, PMAT_z];
+    
+    % Column names
+    M.Xnames = {'Intercept','Gender','Age','PMAT'};
     
     % 3. Parameter fields to include
-    fields = {'A', 'B', 'C', 'transit', 'decay', 'epsilon'};
+    fields = {'A', 'B', 'C'};
     
     % 4. Estimate PEB
     PEB = spm_dcm_peb(DCM_files, M, fields);
     
     % 5. Save the full PEB result
-    outname = sprintf('PEB_%s.mat', cond);
+    outname = sprintf('HCP_Social_Task/SPM/Output/PEB_%s.mat', cond);
     save(outname, 'PEB');
     
     fprintf('Saved: %s\n', outname);
@@ -44,322 +87,55 @@ end
 
 fprintf('\nAll PEBs complete!\n');
 
-%% ==========================
-clear; clc;
+%% ===
+% List of PEB files
+PEB_files = {'HCP_Social_Task/SPM/Output/PEB_phaseLR_maskL.mat', 'HCP_Social_Task/SPM/Output/PEB_phaseLR_maskR.mat', ...
+             'HCP_Social_Task/SPM/Output/PEB_phaseRL_maskL.mat', 'HCP_Social_Task/SPM/Output/PEB_phaseRL_maskR.mat'};
 
-phase = 'LR';    
-mask  = 'L'; 
+conditions = {'phaseLR_maskL', 'phaseLR_maskR', 'phaseRL_maskL', 'phaseRL_maskR'};
 
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM/Output'); 
+% Initialize master table
+allPEB = table();
 
-% Load one first-level DCM used in the PEB
-load('DCM_sub_100307_phaseLR_maskL.mat')
-
-% Load your group PEB
-load('PEB_phaseLR_maskL.mat')
-
-% Generate correct parameter names
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
-param_names = get_param_labels(DCM, PEB);
-
-s = sqrt(diag(PEB.Cp)); 
-s = s(1:10); 
-
-% Combine into a labeled table
-results = table(param_names(:), PEB.Ep(1:10,:), s, ...
-                'VariableNames', {'Parameter', 'Mean', 'SD'});
-
-% Define the R parameter order (names must match the R convention)
-param_order_R = {
-    'A(2,1)','A(1,2)','A(1,1)','A(2,2)', ...
-    'B(2,2,1)','B(2,1,2)','B(2,1,1)','B(2,2,2)', ...
-    'C(1,1)','C(2,1)'
-};
-
-% 1. Convert B parameter names in MATLAB table to R convention (input first)
-param_names_mod = results.Parameter;  % copy MATLAB names
-for r = 1:height(results)
-    if startsWith(param_names_mod{r}, 'B(')
-        nums = sscanf(param_names_mod{r}, 'B(%d,%d,%d)');  % target, source, input
-        target = nums(1);
-        source = nums(2);
-        input  = nums(3);
-
-        % reorder for R: input, target, source
-        param_names_mod{r} = sprintf('B(%d,%d,%d)', input, target, source);
-
-        % also update table columns for clarity
-        results.input(r) = input;
-        results.row(r)   = target;
-        results.col(r)   = source;
+for f = 1:length(PEB_files)
+    
+    % Load PEB
+    load(PEB_files{f}, 'PEB');
+    
+    % Number of parameters and covariates
+    [nParams, nCov] = size(PEB.Ep);
+    
+    % Names of covariates (intercept + others)
+    covNames = {'Intercept', 'Gender', 'Age', 'PMAT'};
+    if nCov ~= length(covNames)
+        covNames = strcat('Cov', string(1:nCov)); % fallback
     end
+    
+    % Extract standard deviations for each parameter & covariate
+    % Cp is the posterior covariance of the vectorized Ep
+    SD = sqrt(diag(PEB.Cp));
+    
+    % Cp corresponds to vec(Ep), so reshape into nParams x nCov
+    SDmat = reshape(SD, nParams, nCov);
+    
+    % Make table for this condition
+    T = table(PEB.Pnames(:), ...
+              PEB.Ep(:,1), PEB.Ep(:,2), PEB.Ep(:,3), PEB.Ep(:,4), ...
+              SDmat(:,1), SDmat(:,2), SDmat(:,3), SDmat(:,4), ...
+              'VariableNames', ['Parameter', ...
+                                strcat('Ep_', covNames), ...
+                                strcat('SD_', covNames)]);
+    
+    % Add a column for condition
+    T.Condition = repmat(conditions(f), nParams, 1);
+    
+    % Append to master table
+    allPEB = [allPEB; T];
+    
 end
-results.Parameter = param_names_mod;  % overwrite names with R-style
 
-% 2. Reorder rows to match R table
-[~, idx] = ismember(param_order_R, results.Parameter);
-if any(idx==0)
-    warning('Some R parameters were not found in MATLAB results:');
-    disp(param_order_R(idx==0))
-end
-results_reordered = results(idx(idx>0), :);
+% Save table
+writetable(allPEB, 'HCP_Social_Task/SPM/SPM_PEB_Summary.csv');
 
-results_final = results_reordered(:, {'Parameter', 'Mean', 'SD'});
 
-results_final.Mean = round(results_final.Mean, 3);
-results_final.SD   = round(results_final.SD, 3);
 
-% Display the final table
-msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
-disp(msg)
-disp(results_final)
-
-writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
-
-hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
-'VariableNames',{'Parameter','Mean'});
-
-writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
-
-%% ======================
-spm_dcm_peb_review(PEB)
-
-%% ==========================
-clear; clc;
-
-phase = 'LR';    
-mask  = 'R'; 
-
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM/Output'); 
-
-% Load one first-level DCM used in the PEB
-load('DCM_sub_100307_phaseLR_maskR.mat')
-
-% Load your group PEB
-load('PEB_phaseLR_maskR.mat')
-
-% Generate correct parameter names
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
-param_names = get_param_labels(DCM, PEB);
-
-s = sqrt(diag(PEB.Cp)); 
-s = s(1:10); 
-
-% Combine into a labeled table
-results = table(param_names(:), PEB.Ep(1:10,:), s, ...
-                'VariableNames', {'Parameter', 'Mean', 'SD'});
-
-% Define the R parameter order (names must match the R convention)
-param_order_R = {
-    'A(2,1)','A(1,2)','A(1,1)','A(2,2)', ...
-    'B(2,2,1)','B(2,1,2)','B(2,1,1)','B(2,2,2)', ...
-    'C(1,1)','C(2,1)'
-};
-
-% 1. Convert B parameter names in MATLAB table to R convention (input first)
-param_names_mod = results.Parameter;  % copy MATLAB names
-for r = 1:height(results)
-    if startsWith(param_names_mod{r}, 'B(')
-        nums = sscanf(param_names_mod{r}, 'B(%d,%d,%d)');  % target, source, input
-        target = nums(1);
-        source = nums(2);
-        input  = nums(3);
-
-        % reorder for R: input, target, source
-        param_names_mod{r} = sprintf('B(%d,%d,%d)', input, target, source);
-
-        % also update table columns for clarity
-        results.input(r) = input;
-        results.row(r)   = target;
-        results.col(r)   = source;
-    end
-end
-results.Parameter = param_names_mod;  % overwrite names with R-style
-
-% 2. Reorder rows to match R table
-[~, idx] = ismember(param_order_R, results.Parameter);
-if any(idx==0)
-    warning('Some R parameters were not found in MATLAB results:');
-    disp(param_order_R(idx==0))
-end
-results_reordered = results(idx(idx>0), :);
-
-results_final = results_reordered(:, {'Parameter', 'Mean', 'SD'});
-
-results_final.Mean = round(results_final.Mean, 3);
-results_final.SD   = round(results_final.SD, 3);
-
-% Display the final table
-msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
-disp(msg)
-disp(results_final)
-
-writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
-
-hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
-'VariableNames',{'Parameter','Mean'});
-
-writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
-
-%% ======================
-spm_dcm_peb_review(PEB)
-
-%% ==========================
-clear; clc;
-
-phase = 'RL';    
-mask  = 'L'; 
-
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM/Output'); 
-
-% Load one first-level DCM used in the PEB
-load('DCM_sub_100307_phaseRL_maskL.mat')
-
-% Load your group PEB
-load('PEB_phaseRL_maskL.mat')
-
-% Generate correct parameter names
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
-param_names = get_param_labels(DCM, PEB);
-
-s = sqrt(diag(PEB.Cp)); 
-s = s(1:10); 
-
-% Combine into a labeled table
-results = table(param_names(:), PEB.Ep(1:10,:), s, ...
-                'VariableNames', {'Parameter', 'Mean', 'SD'});
-
-% Define the R parameter order (names must match the R convention)
-param_order_R = {
-    'A(2,1)','A(1,2)','A(1,1)','A(2,2)', ...
-    'B(2,2,1)','B(2,1,2)','B(2,1,1)','B(2,2,2)', ...
-    'C(1,1)','C(2,1)'
-};
-
-% 1. Convert B parameter names in MATLAB table to R convention (input first)
-param_names_mod = results.Parameter;  % copy MATLAB names
-for r = 1:height(results)
-    if startsWith(param_names_mod{r}, 'B(')
-        nums = sscanf(param_names_mod{r}, 'B(%d,%d,%d)');  % target, source, input
-        target = nums(1);
-        source = nums(2);
-        input  = nums(3);
-
-        % reorder for R: input, target, source
-        param_names_mod{r} = sprintf('B(%d,%d,%d)', input, target, source);
-
-        % also update table columns for clarity
-        results.input(r) = input;
-        results.row(r)   = target;
-        results.col(r)   = source;
-    end
-end
-results.Parameter = param_names_mod;  % overwrite names with R-style
-
-% 2. Reorder rows to match R table
-[~, idx] = ismember(param_order_R, results.Parameter);
-if any(idx==0)
-    warning('Some R parameters were not found in MATLAB results:');
-    disp(param_order_R(idx==0))
-end
-results_reordered = results(idx(idx>0), :);
-
-results_final = results_reordered(:, {'Parameter', 'Mean', 'SD'});
-
-results_final.Mean = round(results_final.Mean, 3);
-results_final.SD   = round(results_final.SD, 3);
-
-% Display the final table
-msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
-disp(msg)
-disp(results_final)
-
-writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
-
-hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
-'VariableNames',{'Parameter','Mean'});
-
-writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
-
-%% ======================
-spm_dcm_peb_review(PEB)
-
-%% ==========================
-clear; clc;
-
-phase = 'RL';    
-mask  = 'R'; 
-
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM/Output'); 
-
-% Load one first-level DCM used in the PEB
-load('DCM_sub_100307_phaseRL_maskR.mat')
-
-% Load your group PEB
-load('PEB_phaseRL_maskR.mat')
-
-% Generate correct parameter names
-cd('/storage/work/krf5429/Canonical-DCM-Method/HCP_Social_Task/SPM');
-param_names = get_param_labels(DCM, PEB);
-
-s = sqrt(diag(PEB.Cp)); 
-s = s(1:10); 
-
-% Combine into a labeled table
-results = table(param_names(:), PEB.Ep(1:10,:), s, ...
-                'VariableNames', {'Parameter', 'Mean', 'SD'});
-
-% Define the R parameter order (names must match the R convention)
-param_order_R = {
-    'A(2,1)','A(1,2)','A(1,1)','A(2,2)', ...
-    'B(2,2,1)','B(2,1,2)','B(2,1,1)','B(2,2,2)', ...
-    'C(1,1)','C(2,1)'
-};
-
-% 1. Convert B parameter names in MATLAB table to R convention (input first)
-param_names_mod = results.Parameter;  % copy MATLAB names
-for r = 1:height(results)
-    if startsWith(param_names_mod{r}, 'B(')
-        nums = sscanf(param_names_mod{r}, 'B(%d,%d,%d)');  % target, source, input
-        target = nums(1);
-        source = nums(2);
-        input  = nums(3);
-
-        % reorder for R: input, target, source
-        param_names_mod{r} = sprintf('B(%d,%d,%d)', input, target, source);
-
-        % also update table columns for clarity
-        results.input(r) = input;
-        results.row(r)   = target;
-        results.col(r)   = source;
-    end
-end
-results.Parameter = param_names_mod;  % overwrite names with R-style
-
-% 2. Reorder rows to match R table
-[~, idx] = ismember(param_order_R, results.Parameter);
-if any(idx==0)
-    warning('Some R parameters were not found in MATLAB results:');
-    disp(param_order_R(idx==0))
-end
-results_reordered = results(idx(idx>0), :);
-
-results_final = results_reordered(:, {'Parameter', 'Mean', 'SD'});
-
-results_final.Mean = round(results_final.Mean, 3);
-results_final.SD   = round(results_final.SD, 3);
-
-% Display the final table
-msg = sprintf('PEB for Phase %s, Mask %s', phase, mask);
-disp(msg)
-disp(results_final)
-
-writetable(results_final, sprintf('SPM_PEB_phase%s_mask%s.csv', phase, mask));
-
-hemodynamics = table(PEB.Pnames(11:14), PEB.Ep(11:14,:),...
-'VariableNames',{'Parameter','Mean'});
-
-writetable(hemodynamics, sprintf('SPM_PEB_hemodynamics_phase%s_mask%s.csv', phase, mask))
-
-%% ======================
-spm_dcm_peb_review(PEB)
