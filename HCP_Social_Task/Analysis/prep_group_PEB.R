@@ -3,27 +3,8 @@ library(R.matlab)
 
 rm(list = ls())
 
-subjects <- c(100307,100408,101107,101309,101915,103111,103414,103818,105014,
-              105115,106016,108828,110411,111312,111716,113619,113922,114419,
-              115320,116524,117122,118528,118730,118932,120111,122317,122620,
-              123117,123925,124422,125525,126325,127630,127933,128127,128632,
-              129028,130013,130316,131217,131722,133019,133928,135225,135932,
-              136833,138534,139637,140925,144832,146432,147737,148335,148840,
-              149337,149539,149741,151223,151526,151627,153025,154734,156637,
-              159340,160123,161731,162733,163129,176542,178950,188347,189450,
-              190031,192540,196750,198451,199655,201111,208226,211417,211720,
-              212318,214423,221319,239944,245333,280739,298051,366446,397760,
-              414229,499566,654754,672756,751348,756055,792564,856766,857263,
-              899885)
-
-# Phase-encoding (run/session)
-phase <- c("LR","RL")
-
-# Type of mask (right or left)
-mask_type <- c("L","R")
-
-# Combinations of all phases and mask types
-combos <- expand.grid(phase = phase,mask = mask_type)
+# Load in diagnostics - only include converged chains
+load("HCP_Social_Task/Analysis/MCMC_diagnostics.RData")
 
 # Hypothesis
 A_idxs <- matrix(c(2,1,
@@ -75,16 +56,15 @@ source("canonical_dcm_functions.R")
 # Set up MCMC posterior outputs for SPM PEB
 ###############################################
 
-for (i in 1:length(subjects)){
+for (i in 1:nrow(diagnostics)){
   
-  for (j in 1:nrow(combos)){
     # Load your R posterior draws
-    load(paste0("HCP_Social_Task/Output/sub-", subjects[i],
-                "_phase", combos$phase[j], "_mask", combos$mask[j], "_draws.RData"))
+    load(paste0("HCP_Social_Task/Output/sub-", diagnostics$subject[i],
+                "_", diagnostics$condition[i], "_draws.RData"))
     
     # Load your data
-    load(paste0("HCP_Social_Task/Data/sub-", subjects[i],
-                "_phase", combos$phase[j], "_mask", combos$mask[j], ".RData"))
+    load(paste0("HCP_Social_Task/Data/sub-", diagnostics$subject[i],
+                "_", diagnostics$condition[i], ".RData"))
     
     # Summarise posterior draws
     summary <- posterior::summarise_draws(draws_df)
@@ -149,14 +129,13 @@ for (i in 1:length(subjects)){
     #################################################################
     
     # Save as .mat file
-    writeMat(paste0("HCP_Social_Task/Output/sub_",  subjects[i], "_phase", combos$phase[j], 
-                    "_mask", combos$mask[j], ".mat"),
+    writeMat(paste0("HCP_Social_Task/Output/sub-", diagnostics$subject[i],
+                    "_", diagnostics$condition[i], ".mat"),
              A = paramMats$A,
              B1 = paramMats$B[[1]],
              B2 = paramMats$B[[2]],
              C = paramMats$C,
              Cp = Cp,
              DCM_F = elbo)
-  }
 }
 
