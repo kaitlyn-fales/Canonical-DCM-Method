@@ -72,7 +72,7 @@ input_names  = {'U1', 'U2'};   % experimental inputs
 
 %% =============================
 % --- Build the filename dynamically ---
-filename = 'Data/canonical_sim_data_diagA.mat';
+filename = 'Balloon_Simulation/Data/canonical_sim_data_diagA.mat';
 
 % --- Load the file ---
 load(filename);
@@ -96,11 +96,28 @@ DCM.U.name = input_names;                  % input names
 DCM.U.dt   = DCM.Y.dt;
 
 % Save and estimate
-output   = 'Output/canonical_diagA.mat';
+output   = 'Balloon_Simulation/Output/canonical_diagA.mat';
 
 % --- Save the DCM structure ---
 save(output, 'DCM');
 
 % --- Estimate the DCM ---
 spm_dcm_estimate(output);
+
+%% ===========
+clear; clc;
+
+% Load fitted DCM back in
+load('Balloon_Simulation/Output/canonical_diagA.mat');
+
+% Save necessary variables for R
+Cp = full(Cp);   
+
+Ep_A = Ep.A;
+Ep_B = Ep.B;
+Ep_C = Ep.C;
+DCM_y = DCM.y;
+
+save('Balloon_Simulation/Output/canonical_diagA_out.mat', 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
 

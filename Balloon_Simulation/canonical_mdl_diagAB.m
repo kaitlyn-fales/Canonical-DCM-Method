@@ -105,3 +105,20 @@ save(output, 'DCM');
 % --- Estimate the DCM ---
 spm_dcm_estimate(output);
 
+%% ===========
+clear; clc;
+
+% Load fitted DCM back in
+load('Balloon_Simulation/Output/canonical_diagAB.mat');
+
+% Save necessary variables for R
+Cp = full(Cp);   
+
+Ep_A = Ep.A;
+Ep_B = Ep.B;
+Ep_C = Ep.C;
+DCM_y = DCM.y;
+
+save('Balloon_Simulation/Output/canonical_diagAB_out.mat', 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
+
