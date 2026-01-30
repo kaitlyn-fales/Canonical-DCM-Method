@@ -251,7 +251,10 @@ writeMat("Balloon_Simulation/Data/balloon_sim_data_diagAB.mat",
          U = dat$u,
          Y = dat$y_obs)
 
-
+# Oracle MSE - also scale true signal 
+BOLD <- BOLD * scale
+mse_V1 <- mean((y_obs[,1] - BOLD[,1])^2)
+mse_V2 <- mean((y_obs[,2] - BOLD[,2])^2)
 
 
 

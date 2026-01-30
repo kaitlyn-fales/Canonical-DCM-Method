@@ -235,6 +235,10 @@ writeMat("Balloon_Simulation/Data/canonical_sim_data_diagA.mat",
          U = dat$u,
          Y = dat$y_obs)
 
+# Oracle MSE
+mse_V1 <- mean((y_obs[,1] - y_obs_ana[,1])^2)
+mse_V2 <- mean((y_obs[,2] - y_obs_ana[,2])^2)
+
 ############################
 # Structural identifiability check
 # (A1)-(A4) met
