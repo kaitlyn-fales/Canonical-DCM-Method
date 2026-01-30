@@ -73,7 +73,7 @@ input_names  = {'U1', 'U2'};   % experimental inputs
 
 %% =============================
 % --- Build the filename dynamically ---
-filename = 'Data/canonical_sim_data_diagAB.mat';
+filename = 'Balloon_Simulation/Data/canonical_sim_data_diagAB.mat';
 
 % --- Load the file ---
 load(filename);
@@ -97,7 +97,7 @@ DCM.U.name = input_names;                  % input names
 DCM.U.dt   = DCM.Y.dt;
 
 % Save and estimate
-output   = 'Output/canonical_diagAB.mat';
+output   = 'Balloon_Simulation/Output/canonical_diagAB.mat';
 
 % --- Save the DCM structure ---
 save(output, 'DCM');
