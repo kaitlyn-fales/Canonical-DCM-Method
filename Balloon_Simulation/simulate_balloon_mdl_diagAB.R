@@ -245,7 +245,11 @@ mtext(paste("Scaled Noisy Observations using SPM12 Hemodynamic Model at SNR = ",
 dat <- list(times = times[-1], u = u, y_obs = y_obs)
 save(dat, file = "Balloon_Simulation/Data/balloon_sim_data_diagAB.RData")
 
-
+# Write observed signal to a MATLAB file for SPM
+library(R.matlab)
+writeMat("Balloon_Simulation/Data/balloon_sim_data_diagAB.mat",
+         U = dat$u,
+         Y = dat$y_obs)
 
 
 
