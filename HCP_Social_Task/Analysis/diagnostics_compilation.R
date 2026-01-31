@@ -124,3 +124,6 @@ diagnostics_df <- bind_rows(diagnostic_list)
 
 save(diagnostics_df, file = paste0(path,"/../Analysis/diagnostics_compilation.RData"))
 
+# Summarize
+summary(diagnostics_df)
+
