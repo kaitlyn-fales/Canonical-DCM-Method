@@ -116,6 +116,20 @@ save(output, 'DCM');
 % --- Estimate the DCM ---
 spm_dcm_estimate(output);
 
+% Load fitted DCM back in
+load(output);
+
+% Save necessary variables for R
+Cp = full(Cp);   
+
+Ep_A = Ep.A;
+Ep_B = Ep.B;
+Ep_C = Ep.C;
+DCM_y = DCM.y;
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
+
 %% =============================
 % --- Define phase and mask ---
 phase = 'LR';    
@@ -157,6 +171,19 @@ save(output, 'DCM');
 
 % --- Estimate the DCM ---
 spm_dcm_estimate(output);
+
+% Load fitted DCM back in
+load(output);
+
+% Save necessary variables for R
+Cp = full(Cp);   
+
+Ep_A = Ep.A;
+Ep_B = Ep.B;
+Ep_C = Ep.C;
+DCM_y = DCM.y;
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
 
 %% =============================
 % --- Define phase and mask ---
@@ -200,6 +227,19 @@ save(output, 'DCM');
 % --- Estimate the DCM ---
 spm_dcm_estimate(output);
 
+% Load fitted DCM back in
+load(output);
+
+% Save necessary variables for R
+Cp = full(Cp);   
+
+Ep_A = Ep.A;
+Ep_B = Ep.B;
+Ep_C = Ep.C;
+DCM_y = DCM.y;
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
 %% =============================
 % --- Define phase and mask ---
 phase = 'RL';    
@@ -242,7 +282,18 @@ save(output, 'DCM');
 % --- Estimate the DCM ---
 spm_dcm_estimate(output);
 
+% Load fitted DCM back in
+load(output);
 
+% Save necessary variables for R
+Cp = full(Cp);   
+
+Ep_A = Ep.A;
+Ep_B = Ep.B;
+Ep_C = Ep.C;
+DCM_y = DCM.y;
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
 
 
 
