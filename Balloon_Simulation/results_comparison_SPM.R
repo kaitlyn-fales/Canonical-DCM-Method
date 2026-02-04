@@ -39,13 +39,38 @@ get_summary <- function(mu,sigma2){
 
 #################### Canonical data generating model ###########################
 # Simple model with diag A est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.7)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7)
 nu = truth
 
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
 result <- readMat(paste0(path,"/canonical_diagA_out.mat"))
+
+# Inputs - vectorize
+mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
+Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+
+# Indices of the params to be transformed
+idx_A <- c(1,4) 
+
+# simulation settings
+S <- 20000
+set.seed(1234)
+
+# Simulate draws
+draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
+
+# Transform the specified components
+draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+
+# Compute empirical mean and covariance on transformed scale
+mu_emp  <- colMeans(draws)     
+Sigma_emp <- cov(draws)   
+
+# Add in transformed diagonal back to original estimate
+diag(result$Ep.A) <- mu_emp[idx_A]
+diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
 
 # Indices of parameters
 idxs = list(A_idxs = matrix(c(2,1,
@@ -93,9 +118,9 @@ p1 <- df %>%
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A") +
   labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.7, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5, y = -0.7, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 6, y = -0.7, label = "nu[C]", parse = TRUE, size = 8) +
+  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
   annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
   annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
@@ -112,13 +137,43 @@ p1 <- df %>%
 rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats")))
 
 # Simple model with diag A and diag B est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.05,0.7)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.05,0.7)
 nu = truth
 
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
 result <- readMat(paste0(path,"/canonical_diagAB_out.mat"))
+
+# Inputs - vectorize
+mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
+Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+
+# Indices of the params to be transformed
+idx_A <- c(1,4) 
+idx_B <- 12
+
+# simulation settings
+S <- 20000
+set.seed(1234)
+
+# Simulate draws
+draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
+
+# Transform the specified components
+draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+draws[,idx_B] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B]-1)
+
+# Compute empirical mean and covariance on transformed scale
+mu_emp  <- colMeans(draws)     
+Sigma_emp <- cov(draws)   
+
+# Add in transformed diagonal back to original estimate
+diag(result$Ep.A) <- mu_emp[idx_A]
+diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
+
+result$Ep.B[2,2,2] <- mu_emp[idx_B]
+diag(result$Cp)[idx_B] <- diag(Sigma_emp)[idx_B]
 
 # Indices of parameters
 idxs = list(A_idxs = matrix(c(2,1,
@@ -167,9 +222,9 @@ p2 <- df %>%
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B") +
   labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.7, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5.5, y = -0.7, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 7, y = -0.7, label = "nu[C]", parse = TRUE, size = 8) +
+  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
   annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
   annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
@@ -197,13 +252,38 @@ rm(list = setdiff(ls(), c("get_summary","unstruct_paramMats")))
 
 #################### Balloon data generating model ###########################
 # Simple model with diag A est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.7)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7)
 nu = truth
 
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
 result <- readMat(paste0(path,"/balloon_diagA_out.mat"))
+
+# Inputs - vectorize
+mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
+Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+
+# Indices of the params to be transformed
+idx_A <- c(1,4) 
+
+# simulation settings
+S <- 20000
+set.seed(1234)
+
+# Simulate draws
+draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
+
+# Transform the specified components
+draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+
+# Compute empirical mean and covariance on transformed scale
+mu_emp  <- colMeans(draws)     
+Sigma_emp <- cov(draws)   
+
+# Add in transformed diagonal back to original estimate
+diag(result$Ep.A) <- mu_emp[idx_A]
+diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
 
 # Indices of parameters
 idxs = list(A_idxs = matrix(c(2,1,
@@ -270,13 +350,43 @@ p1 <- df %>%
 rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats")))
 
 # Simple model with diag A and diag B est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.05,0.7)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7)
 nu = truth
 
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
 result <- readMat(paste0(path,"/balloon_diagAB_out.mat"))
+
+# Inputs - vectorize
+mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
+Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+
+# Indices of the params to be transformed
+idx_A <- c(1,4) 
+idx_B <- 12
+
+# simulation settings
+S <- 20000
+set.seed(1234)
+
+# Simulate draws
+draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
+
+# Transform the specified components
+draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+draws[,idx_B] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B]-1)
+
+# Compute empirical mean and covariance on transformed scale
+mu_emp  <- colMeans(draws)     
+Sigma_emp <- cov(draws)   
+
+# Add in transformed diagonal back to original estimate
+diag(result$Ep.A) <- mu_emp[idx_A]
+diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
+
+result$Ep.B[2,2,2] <- mu_emp[idx_B]
+diag(result$Cp)[idx_B] <- diag(Sigma_emp)[idx_B]
 
 # Indices of parameters
 idxs = list(A_idxs = matrix(c(2,1,

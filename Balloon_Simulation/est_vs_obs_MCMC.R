@@ -32,7 +32,6 @@ struct_paramMats = function(m, n_u, idxs, nu){
   for(i in 1:nrow(idxs$A_idxs)){
     A[idxs$A_idxs[i,1], idxs$A_idxs[i,2]] = with(nu,nu_A[i])
   }
-  diag(A) = -0.5*exp(diag(A))
   
   B = lapply(1:n_u, function(x){matrix(data = 0,nrow = m, ncol = m)})
   for(i in 1:nrow(idxs$B_idxs)){
@@ -46,7 +45,7 @@ struct_paramMats = function(m, n_u, idxs, nu){
   
   return(list(A=A,B=B,C=C))
   
-}
+} # imported params already have diag(A) transform
 
 # ODE for neural activation that needs to be solved
 linear <- function(t, z, params, input) {
@@ -205,7 +204,6 @@ struct_paramMats = function(m, n_u, idxs, nu){
   for(i in 1:nrow(idxs$A_idxs)){
     A[idxs$A_idxs[i,1], idxs$A_idxs[i,2]] = with(nu,nu_A[i])
   }
-  diag(A) = -0.5*exp(diag(A))
   
   B = lapply(1:n_u, function(x){matrix(data = 0,nrow = m, ncol = m)})
   for(i in 1:nrow(idxs$B_idxs)){
@@ -219,7 +217,7 @@ struct_paramMats = function(m, n_u, idxs, nu){
   
   return(list(A=A,B=B,C=C))
   
-}
+} # imported params already have diag(A) transform
 
 # ODE for neural activation that needs to be solved
 linear <- function(t, z, params, input) {
@@ -350,7 +348,6 @@ struct_paramMats = function(m, n_u, idxs, nu){
   for(i in 1:nrow(idxs$A_idxs)){
     A[idxs$A_idxs[i,1], idxs$A_idxs[i,2]] = with(nu,nu_A[i])
   }
-  diag(A) = -0.5*exp(diag(A))
   
   B = lapply(1:n_u, function(x){matrix(data = 0,nrow = m, ncol = m)})
   for(i in 1:nrow(idxs$B_idxs)){
@@ -364,7 +361,7 @@ struct_paramMats = function(m, n_u, idxs, nu){
   
   return(list(A=A,B=B,C=C))
   
-}
+} # imported params already have diag(A) transform
 
 # ODE for neural activation that needs to be solved
 linear <- function(t, z, params, input) {
@@ -524,7 +521,6 @@ struct_paramMats = function(m, n_u, idxs, nu){
   for(i in 1:nrow(idxs$A_idxs)){
     A[idxs$A_idxs[i,1], idxs$A_idxs[i,2]] = with(nu,nu_A[i])
   }
-  diag(A) = -0.5*exp(diag(A))
   
   B = lapply(1:n_u, function(x){matrix(data = 0,nrow = m, ncol = m)})
   for(i in 1:nrow(idxs$B_idxs)){
@@ -538,7 +534,7 @@ struct_paramMats = function(m, n_u, idxs, nu){
   
   return(list(A=A,B=B,C=C))
   
-}
+} # imported params already have diag(A) transform
 
 # ODE for neural activation that needs to be solved
 linear <- function(t, z, params, input) {

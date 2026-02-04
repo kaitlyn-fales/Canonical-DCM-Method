@@ -22,6 +22,10 @@ for (i in 1:nrow(df)){
     # Get rid of unnecessary columns
     draws <- suppressWarnings(draws_df[,c(4:13)])
     
+    # Transform the diag(A) draws according to our reparameterization
+    # nu_A[3] and nu_A[4]
+    draws[,3:4] <- -0.5*exp(draws[,3:4])
+    
     # Extract posterior means
     post_means <- summarize_draws(draws, mean)[,2]
     y_list[[i]] <- as.numeric(as.matrix(post_means))

@@ -6,7 +6,7 @@ library(gridExtra)
 ############### Balloon data generating model #################################
 
 # Simple model with diag A est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.7,0.1,0.1,0,0)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7,0.1,0.1,0,0)
 nu = truth
 
 # Diagonal of A estimated
@@ -32,6 +32,11 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   load(files[i])
+  
+  # Transform the diag(A) draws according to our reparameterization
+  # nu_A[3] and nu_A[4]
+  draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
+  
   summary <- summarise_draws(draws_df)
   summary <- summary[4:13,]
   summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
@@ -89,9 +94,9 @@ p1 <- df %>%
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A") +
   labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.5, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5, y = -0.5, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 6, y = -0.5, label = "nu[C]", parse = TRUE, size = 8) +
+  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
   annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
   annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
@@ -108,7 +113,7 @@ p1 <- df %>%
 rm(list = setdiff(ls(), "p1"))
 
 # Simple model with diag A and diag B est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.05,0.7,0.1,0.1,0,0)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7,0.1,0.1,0,0)
 nu = truth
 
 # Diagonal of A and diag B estimated
@@ -134,6 +139,11 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   load(files[i])
+  
+  # Transform the diag(A) draws according to our reparameterization
+  # nu_A[3] and nu_A[4]
+  draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
+  
   summary <- summarise_draws(draws_df)
   summary <- summary[4:14,]
   summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
@@ -191,9 +201,9 @@ p2 <- df %>%
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B") +
   labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.5, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5.5, y = -0.5, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 7, y = -0.5, label = "nu[C]", parse = TRUE, size = 8) +
+  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
   annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
   annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
@@ -223,7 +233,7 @@ rm(list = ls())
 ############### Canonical data generating model #################################
 
 # Simple model with diag A est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.7,0.1,0.1,0,0)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7,0.1,0.1,0,0)
 nu = truth
 
 # Diagonal of A estimated
@@ -249,6 +259,11 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   load(files[i])
+  
+  # Transform the diag(A) draws according to our reparameterization
+  # nu_A[3] and nu_A[4]
+  draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
+  
   summary <- summarise_draws(draws_df)
   summary <- summary[4:13,]
   summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
@@ -306,9 +321,9 @@ p1 <- df %>%
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A") +
   labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.7, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5, y = -0.7, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 6, y = -0.7, label = "nu[C]", parse = TRUE, size = 8) +
+  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
   annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
   annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
@@ -325,7 +340,7 @@ p1 <- df %>%
 rm(list = setdiff(ls(), "p1"))
 
 # Simple model with diag A and diag B est
-truth <- c(0.4,0.3,-0.1,0.15,-0.2,0.05,0.7,0.1,0.1,0,0)
+truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.05,0.7,0.1,0.1,0,0)
 nu = truth
 
 # Diagonal of A and diag B estimated
@@ -351,6 +366,11 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   load(files[i])
+  
+  # Transform the diag(A) draws according to our reparameterization
+  # nu_A[3] and nu_A[4]
+  draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
+  
   summary <- summarise_draws(draws_df)
   summary <- summary[4:14,]
   summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
@@ -408,9 +428,9 @@ p2 <- df %>%
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B") +
   labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.7, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5.5, y = -0.7, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 7, y = -0.7, label = "nu[C]", parse = TRUE, size = 8) +
+  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
   annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
   annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
