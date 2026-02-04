@@ -38,13 +38,13 @@ paste0("DCM for Subject ",sub,", Phase ", phase," Encoding, and Mask ",mask_type
 canonical_dcm = cmdstanr::cmdstan_model("../canonical_dcm.stan")
 
 # Indices of parameters in hypothesis
-A_idxs <- matrix(c(2,1,
+A_idxs <- matrix(c(1,1,
+                   2,1,
                    1,2,
-                   1,1,
                    2,2), byrow = T, ncol = 2)
-B_idxs <- matrix(c(2,2,1,
+B_idxs <- matrix(c(2,1,1,
+                   2,2,1,
                    2,1,2,
-                   2,1,1,
                    2,2,2), byrow = T, ncol = 3)
 C_idxs <- matrix(c(1,1,
                    2,1), byrow = T, ncol = 2)
@@ -64,8 +64,8 @@ ess_check <- as.numeric(minESS(num_param, alpha = 0.1, eps = 0.05))
 ########### Initialize sampler ################
 # Initial values for pathfinder from group level DCM paper
 pathfinder_inits <- list(sigma = c(1,1),
-                         nu_A = c(0,0,1,1),
-                         nu_B = c(1.22,0.16,-0.03,-0.19),
+                         nu_A = c(0,0,0,0),
+                         nu_B = c(-0.03,1.22,0.16,-0.19),
                          nu_C = c(0.96,-0.06),
                          z0 = c(0.1,0.1),
                          beta = c(0,0))
