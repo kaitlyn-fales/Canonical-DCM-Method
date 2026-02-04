@@ -1,13 +1,12 @@
 ########### Preprocess data for social task DCM ##################
 
-setwd("/storage/work/krf5429/HCP_Social_Task")
-
 # Packages
 library(RNifti)
-library(nlme)
+library(R.matlab)
 
 # Directory for results
-data_dir <- "Data"
+data_dir_MCMC <- "HCP_Social_Task/Data" # to store .RData versions
+data_dir_SPM <- "HCP_Social_Task/SPM/Data" # to store .mat versions
 
 ################ List of subject IDs to loop through #######################
 subjects <- c(100307,100408,101107,101309,101915,103111,103414,103818,105014,
@@ -25,11 +24,11 @@ subjects <- c(100307,100408,101107,101309,101915,103111,103414,103818,105014,
 ############################################################################
 
 # Phase-encoding (run/session)
-phase <- "LR"
+phase <- "RL"
 
 # Type of mask (right or left)
-mask_type <- "L"
-mask <- readNifti(paste0("mask_",mask_type,".nii"))
+mask_type <- "R"
+mask <- readNifti(paste0("HCP_Social_Task/mask_",mask_type,".nii"))
 
 # Base directory for raw data
 base_dir <- "/scratch/krf5429/Data"
@@ -51,11 +50,32 @@ stim.indicator <- function(os,dur){
   return(stim)
 }
 
+# Function to extract first PC as representative BOLD time course
+get_BOLD_eigenvariate <- function(BOLD, task) {
+  
+  # Do PCA and pull out relevant quantities
+  pca <- prcomp(BOLD, center = TRUE, scale. = FALSE)
+  
+  V <- pca$rotation[,1]   
+  U <- pca$x[,1]  
+  
+  # Enforce sign convention: mean positive voxel loadings
+  d <- sign(sum(V)); if (d == 0) d <- 1
+  Y <- (U * d) / sqrt(ncol(BOLD)) 
+  
+  # Check that BOLD signal positively correlates with task (u) - based on experimental design
+  # Here, V5 should correlate with All Motion, and pSTS with Animate Motion
+  corr <- cor(Y,task)
+  Y <- ifelse(corr >= 0, 1, -1)*Y
+  
+  return(Y)
+}
+
 ########## Loop to process subject data ################################
 
-for (i in 1:length(subjects)){
+for (k in 1:length(subjects)){
   # Subject to loop through
-  sub <- subjects[i]
+  sub <- subjects[k]
   
   ########### Generate stimulus indicator for social task ########### 
   # Load file for task
@@ -95,7 +115,7 @@ for (i in 1:length(subjects)){
     }
     sds <- apply(BOLD, 2, sd)
     BOLD <- BOLD[, sds > 0]
-    VOI <- prcomp(BOLD, center = T, scale. = T)$x[,1]
+    VOI <- get_BOLD_eigenvariate(BOLD,task = u[,i])
     y_obs[,i] <- VOI
   }
   
@@ -105,21 +125,26 @@ for (i in 1:length(subjects)){
   y_obs <- y_obs * scale
   
   # Plot data and export
-  png(paste0(data_dir,"/Figures/sub-",sub,"_phase",phase,"_mask",mask_type,".png"), 
+  png(paste0(data_dir_MCMC,"/Figures/sub-",sub,"_phase",phase,"_mask",mask_type,".png"), 
       width = 800, height = 600, type = "cairo")
-  par(mfrow = c(1,2))
-  for (i in 1:2) plot(y_obs[,i], type = "l", 
+  par(mfrow = c(2,1))
+  for (m in 1:2) plot(y_obs[,m], type = "l", 
                       xlab = "Scans", 
-                      ylab = colnames(y_obs)[i],
+                      ylab = colnames(y_obs)[m],
                       ylim = c(min(y_obs),max(y_obs)))
   mtext(paste0("Subject ",sub," - ",mask_type," Hemisphere Data for ",phase," Phase Encoding"),
         line = -2, outer = T)
   dev.off()
   ########################################################################
   
-  # Export data file
+  # Export data file for R
   dat <- list(times = times[-1], u = u, y_obs = y_obs, scale = scale)
-  save(dat, file = paste0(data_dir,"/sub-",sub,"_phase",phase,"_mask",mask_type,".RData"))
+  save(dat, file = paste0(data_dir_MCMC,"/sub-",sub,"_phase",phase,"_mask",mask_type,".RData"))
+  
+  # Export data to Matlab for SPM
+  writeMat(paste0(data_dir_SPM,"/sub_",sub,"_phase",phase,"_mask",mask_type,".mat"),
+           U = dat$u,
+           Y = dat$y_obs)
 }
 
 ########################################################################
