@@ -1,12 +1,30 @@
 # PEB for combining subjects into group DCM
-library(R.matlab)
-library(cmdstanr)
+suppressPackageStartupMessages(library(posterior))
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(R.matlab))
+
+# Get environment variables from Slurm
+task_id <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+
+# Define all combinations
+phases <- c("LR", "RL")
+masks <- c("L", "R")
+
+# Expand grid
+conditions <- expand.grid(phase = phases, mask = masks, stringsAsFactors = FALSE)
+
+# Pick the corresponding row
+phase_condition <- conditions$phase[task_id]
+mask_condition  <- conditions$mask[task_id]
+
+cat("Running group analysis for Phase =", phase_condition, "and Mask =", mask_condition, "\n")
 
 # Load diagnostics df to use indices for looping through
-load("HCP_Social_Task/Analysis/diagnostics_compilation.RData")
+load("../Analysis/diagnostics_compilation.RData")
 
 # Filter for one phase and mask condition - do for all four conditions
-df <- filter(diagnostics_df, phase == "RL" & mask == "R")
+df <- filter(diagnostics_df, phase == phase_condition & mask == mask_condition)
 
 # Set up SPM posterior outputs for meta-analysis
 ###############################################
@@ -16,7 +34,7 @@ S_list <- list()
 for (i in 1:nrow(df)){
   
   # Load your output DCM file from Matlab
-  DCM <- readMat(paste0("HCP_Social_Task/SPM/Output/DCM_sub_", df$subject[i],
+  DCM <- readMat(paste0("Output/DCM_sub_", df$subject[i],
                  "_phase", df$phase[i], "_mask", df$mask[i], "_out.mat"))
   
   # Posterior means
@@ -31,16 +49,40 @@ for (i in 1:nrow(df)){
   # Rows/cols 5:8 and 15:16 - get rid of, same for all subjects
   Cp <- Cp[-c(5:8,15:16),-c(5:8,15:16)]
   
+  # Indices of the params to be transformed
+  idx_A <- c(1,4) 
+  idx_B <- c(5,8)
+  
+  # simulation settings
+  S <- 20000
+  set.seed(1234)
+  
+  # Simulate draws
+  draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Cp)
+  
+  # Transform the specified components
+  draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+  draws[,idx_B[1]] <- -0.5*draws[,idx_A[1]]*exp(draws[,idx_B[1]]-1)
+  draws[,idx_B[2]] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B[2]]-1)
+  
+  # Compute empirical mean and covariance on transformed scale
+  mu_emp  <- colMeans(draws)     
+  Sigma_emp <- cov(draws)   
+  
+  # Add in transformed diagonal back to original mean estimate
+  mu[idx_A] <- mu_emp[idx_A]
+  mu[idx_B] <- mu_emp[idx_B]
+  
   # Extract posterior means
   y_list[[i]] <- mu
   
   # Extract posterior covariance
-  S_list[[i]] <- Cp
+  S_list[[i]] <- Sigma_emp
   
 }
 
 # Load in HCP covariates
-covariates <- read.csv("HCP_Social_Task/HCP_YA_subjects.csv")
+covariates <- read.csv("../HCP_YA_subjects.csv")
 
 # Center and scale PMAT
 pmat <- scale(covariates$PMAT24_A_CR)
@@ -75,7 +117,7 @@ meta_data <- list(
 )
 
 # Compile stan model
-mod <- cmdstan_model("meta_analysis.stan")  
+mod <- cmdstan_model("../../meta_analysis.stan")  
 
 init_fun <- function() {
   list(
@@ -137,47 +179,9 @@ fit <- mod$sample(
   seed = 1234
 )
 
-# Extract posterior draws for alpha[1]...alpha[p]
-alpha_draws <- fit$draws(variables = paste0("alpha[", 1:p, "]"))
+# Extract draws
+draws <- as_draws_df(fit$draws())
 
-# Summarize
-alpha_summary <- summarize_draws(alpha_draws)
+# Save
+save(draws, file = paste0("Results/phase",phase_condition,"_mask",mask_condition,".RData"))
 
-# Extract tau draws
-tau_draws <- fit$draws(variables = paste0("tau[", 1:p, "]"))
-
-# Summarize
-tau_summary <- summarize_draws(tau_draws)
-
-# Parameter names in R notation, but in SPM order, which is column-major order of vec(A,B,C) matrices
-par_names <- c("nu_A[3]","nu_A[1]","nu_A[2]","nu_A[4]","nu_B[3]",
-               "nu_B[1]","nu_B[2]","nu_B[4]","nu_C[1]","nu_C[2]")
-
-# General summary table
-summary_table <- tibble(
-  parameter = par_names, # parameter names from R in SPM order
-  mean_alpha = alpha_summary$mean,
-  sd_alpha = alpha_summary$sd,    
-  q5_alpha = alpha_summary$q5,
-  q95_alpha = alpha_summary$q95,
-  between_study_sd = tau_summary$mean  
-)
-
-# Update ordering of results rows to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# This reordering will make the results match that of R for direct comparison
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,1), B(2,2,1), B(2,1,2), B(2,2,2), C(1,1), C(2,1)
-summary_table <- summary_table[c(2,3,1,4,6,7,5,8,9,10),]
-summary_table
-
-assign(paste0("phase",df$phase[1],"_mask",df$mask[1]), summary_table)
-
-# Clear environment except for results
-rm(list = setdiff(ls(), c("phaseLR_maskL","phaseLR_maskR",
-                          "phaseRL_maskL","phaseRL_maskR")))
-
-# Combine results into one list once done and export
-SPM_results <- list(phaseLR_maskL = phaseLR_maskL,
-                    phaseLR_maskR = phaseLR_maskR,
-                    phaseRL_maskL = phaseRL_maskL,
-                    phaseRL_maskR = phaseRL_maskR)
-save(SPM_results, file = "HCP_Social_Task/SPM/SPM_results.RData")
