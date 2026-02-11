@@ -1,0 +1,1 @@
+This is an empty directory to store the simulated data generated from the generate_data.m script in the parent folder. 
