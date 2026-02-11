@@ -1,0 +1,1 @@
+This is an empty directory to store single subject and group level SPM results for the HCP data.
