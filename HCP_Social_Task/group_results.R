@@ -5,6 +5,7 @@ library(deSolve)
 library(RColorBrewer)
 library(grid)
 library(gridExtra)
+library(R.matlab)
 
 # MCMC
 load("HCP_Social_Task/Analysis/Results/MCMC_results.RData")
@@ -131,7 +132,6 @@ grid.arrange(p1, p2, p3, p4, ncol=2, nrow=2,
 
 
 ###################################################################
-
 
 ################ Generate predicted signal (MCMC) #################
 rm(list = setdiff(ls(), c("MCMC_results","SPM_results")))
@@ -269,10 +269,17 @@ rm(list = setdiff(ls(), c("MCMC_results","SPM_results")))
 
 par(mfrow = c(2,2))
 for (j in 1:length(SPM_results)){
-  # Load data for u matrix
-  load(paste0("HCP_Social_Task/Data/sub-100307_",names(SPM_results)[j],".RData"))
-  u <- rbind(0,dat$u)
-  times <- c(0,dat$times)
+  # Load predicted signal from SPM (use hemodynamics and U from sub 100307)
+  signal <- readMat(paste0("HCP_Social_Task/SPM/Results/sub_100307_",names(SPM_results)[j],"_pred.mat"))
+  BOLD <- signal$y.signal
+  
+  # Scanning specifications
+  nscan <- 274
+  TR <- 0.72
+  
+  # Time
+  max_time = TR*nscan
+  times <- seq(0,max_time,TR)
   
   # Choose colors for each region
   cols_all <- brewer.pal(8, "Dark2")
