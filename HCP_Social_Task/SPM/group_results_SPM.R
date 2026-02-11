@@ -1,6 +1,7 @@
 # Extract and summarize posterior draws from group level model for MCMC
 library(posterior)
 library(dplyr)
+library(R.matlab)
 
 # Number of parameters in group level model of interest
 p <- 10
@@ -52,3 +53,6 @@ SPM_results <- list(phaseLR_maskL = phaseLR_maskL,
                     phaseRL_maskL = phaseRL_maskL,
                     phaseRL_maskR = phaseRL_maskR)
 save(SPM_results, file = "HCP_Social_Task/SPM/Results/SPM_results.RData")
+
+# Save as .mat file as well
+writeMat("HCP_Social_Task/SPM/Results/SPM_results.mat", SPM_results = SPM_results)
