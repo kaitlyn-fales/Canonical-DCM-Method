@@ -70,6 +70,7 @@ DCM.options.centre     = 0;       % use U exactly as given
 DCM.options.induced    = 0;       % no induced responses
 DCM.options.analysis   = 'time';  % time-domain BOLD DCM
 DCM.options.nograph    = 1;       % display output plots
+DCM.options.maxit      = 512;     % maximum VL iterations
 
 % Define region and input names
 region_names = {'V5', 'pSTS'};              % regions
@@ -126,8 +127,13 @@ Ep_A = Ep.A;
 Ep_B = Ep.B;
 Ep_C = Ep.C;
 DCM_y = DCM.y;
+transit = full(Ep.transit);
+decay = full(Ep.decay);
+epsilon = full(Ep.epsilon);
 
-save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y', ...
+    "transit","decay","epsilon");
 
 
 %% =============================
@@ -201,6 +207,7 @@ DCM.options.centre     = 0;       % use U exactly as given
 DCM.options.induced    = 0;       % no induced responses
 DCM.options.analysis   = 'time';  % time-domain BOLD DCM
 DCM.options.nograph    = 1;       % display output plots
+DCM.options.maxit      = 512;     % maximum VL iterations
 
 % Define region and input names
 region_names = {'V5', 'pSTS'};              % regions
@@ -257,8 +264,13 @@ Ep_A = Ep.A;
 Ep_B = Ep.B;
 Ep_C = Ep.C;
 DCM_y = DCM.y;
+transit = full(Ep.transit);
+decay = full(Ep.decay);
+epsilon = full(Ep.epsilon);
 
-save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y', ...
+    "transit","decay","epsilon");
 
 %% =============================
 clc;
@@ -331,6 +343,7 @@ DCM.options.centre     = 0;       % use U exactly as given
 DCM.options.induced    = 0;       % no induced responses
 DCM.options.analysis   = 'time';  % time-domain BOLD DCM
 DCM.options.nograph    = 1;       % display output plots
+DCM.options.maxit      = 512;     % maximum VL iterations
 
 % Define region and input names
 region_names = {'V5', 'pSTS'};              % regions
@@ -387,8 +400,13 @@ Ep_A = Ep.A;
 Ep_B = Ep.B;
 Ep_C = Ep.C;
 DCM_y = DCM.y;
+transit = full(Ep.transit);
+decay = full(Ep.decay);
+epsilon = full(Ep.epsilon);
 
-save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
+
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y', ...
+    "transit","decay","epsilon");
 
 %% =============================
 clc;
@@ -461,6 +479,7 @@ DCM.options.centre     = 0;       % use U exactly as given
 DCM.options.induced    = 0;       % no induced responses
 DCM.options.analysis   = 'time';  % time-domain BOLD DCM
 DCM.options.nograph    = 1;       % display output plots
+DCM.options.maxit      = 512;     % maximum VL iterations
 
 % Define region and input names
 region_names = {'V5', 'pSTS'};              % regions
@@ -517,9 +536,13 @@ Ep_A = Ep.A;
 Ep_B = Ep.B;
 Ep_C = Ep.C;
 DCM_y = DCM.y;
+transit = full(Ep.transit);
+decay = full(Ep.decay);
+epsilon = full(Ep.epsilon);
 
-save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y');
 
+save(sprintf('Output/DCM_sub_%s_phase%s_mask%s_out.mat', sub, phase, mask), 'Ep_A', 'Ep_B', 'Ep_C', 'Cp', 'DCM_y', ...
+    "transit","decay","epsilon");
 
 
 
