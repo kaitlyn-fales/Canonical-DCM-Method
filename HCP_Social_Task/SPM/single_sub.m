@@ -62,6 +62,10 @@ for i = 1:size(C_idxs,1)
     DCM.c(region, input) = 1;
 end
 
+% TE and delays (SPM standard delay is TR/2)
+DCM.TE = 0.0331;
+DCM.delays(1:n_regions) = 0.36;
+
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
 DCM.options.two_state  = 0;       % single-state
@@ -198,6 +202,10 @@ for i = 1:size(C_idxs,1)
     input  = C_idxs(i,2);
     DCM.c(region, input) = 1;
 end
+
+% TE and delays (SPM standard delay is TR/2)
+DCM.TE = 0.0331;
+DCM.delays(1:n_regions) = 0.36;
 
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
@@ -335,6 +343,10 @@ for i = 1:size(C_idxs,1)
     DCM.c(region, input) = 1;
 end
 
+% TE and delays (SPM standard delay is TR/2)
+DCM.TE = 0.0331;
+DCM.delays(1:n_regions) = 0.36;
+
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
 DCM.options.two_state  = 0;       % single-state
@@ -470,6 +482,10 @@ for i = 1:size(C_idxs,1)
     input  = C_idxs(i,2);
     DCM.c(region, input) = 1;
 end
+
+% TE and delays (SPM standard delay is TR/2)
+DCM.TE = 0.0331;
+DCM.delays(1:n_regions) = 0.36;
 
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
