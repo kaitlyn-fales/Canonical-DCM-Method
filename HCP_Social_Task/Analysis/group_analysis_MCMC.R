@@ -1,12 +1,29 @@
 # PEB for combining subjects into group DCM
-library(posterior)
-library(cmdstanr)
+suppressPackageStartupMessages(library(posterior))
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(tidyverse))
+
+# Get environment variables from Slurm
+task_id <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+
+# Define all combinations
+phases <- c("LR", "RL")
+masks <- c("L", "R")
+
+# Expand grid
+conditions <- expand.grid(phase = phases, mask = masks, stringsAsFactors = FALSE)
+
+# Pick the corresponding row
+phase_condition <- conditions$phase[task_id]
+mask_condition  <- conditions$mask[task_id]
+
+cat("Running group analysis for Phase =", phase_condition, "and Mask =", mask_condition, "\n")
 
 # Load diagnostics df to use indices for looping through
-load("HCP_Social_Task/Analysis/diagnostics_compilation.RData")
+load("diagnostics_compilation.RData")
 
 # Filter for one phase and mask condition - do for all four conditions
-df <- filter(diagnostics_df, phase == "RL" & mask == "R")
+df <- filter(diagnostics_df, phase == phase_condition & mask == mask_condition)
 
 # Set up MCMC posterior outputs for meta-analysis
 ###############################################
@@ -16,15 +33,15 @@ S_list <- list()
 for (i in 1:nrow(df)){
   
     # Load your R posterior draws
-    load(paste0("HCP_Social_Task/Output/sub-", df$subject[i],
+    load(paste0("../Output/sub-", df$subject[i],
                 "_phase", df$phase[i], "_mask", df$mask[i], "_draws.RData"))
     
     # Get rid of unnecessary columns
     draws <- suppressWarnings(draws_df[,c(4:13)])
     
     # Transform the diag(A) draws according to our reparameterization
-    # nu_A[3] and nu_A[4]
-    draws[,3:4] <- -0.5*exp(draws[,3:4])
+    # nu_A[1] and nu_A[4]
+    draws[,c(1,4)] <- -0.5*exp(draws[,c(1,4)])
     
     # Extract posterior means
     post_means <- summarize_draws(draws, mean)[,2]
@@ -36,7 +53,7 @@ for (i in 1:nrow(df)){
 }
 
 # Load in HCP covariates
-covariates <- read.csv("HCP_Social_Task/HCP_YA_subjects.csv")
+covariates <- read.csv("../HCP_YA_subjects.csv")
 
 # Center and scale PMAT
 pmat <- scale(covariates$PMAT24_A_CR)
@@ -71,7 +88,7 @@ meta_data <- list(
 )
 
 # Compile stan model
-mod <- cmdstan_model("meta_analysis.stan")  
+mod <- cmdstan_model("../../meta_analysis.stan")  
 
 init_fun <- function() {
   list(
@@ -133,38 +150,10 @@ fit <- mod$sample(
   seed = 1234
 )
 
-# Extract posterior draws for alpha[1]...alpha[p]
-alpha_draws <- fit$draws(variables = paste0("alpha[", 1:p, "]"))
+# Extract draws
+draws <- as_draws_df(fit$draws())
 
-# Summarize
-alpha_summary <- summarize_draws(alpha_draws)
+# Save
+save(draws, file = paste0("Results/phase",phase_condition,"_mask",mask_condition,".RData"))
 
-# Extract tau draws
-tau_draws <- fit$draws(variables = paste0("tau[", 1:p, "]"))
 
-# Summarize
-tau_summary <- summarize_draws(tau_draws)
-
-# General summary table
-summary_table <- tibble(
-  parameter = colnames(S_list[[1]]), # original parameter names
-  mean_alpha = alpha_summary$mean,
-  sd_alpha = alpha_summary$sd,    
-  q5_alpha = alpha_summary$q5,
-  q95_alpha = alpha_summary$q95,
-  between_study_sd = tau_summary$mean  
-)
-
-summary_table
-assign(paste0("phase",df$phase[1],"_mask",df$mask[1]), summary_table)
-
-# Clear environment except for results
-rm(list = setdiff(ls(), c("phaseLR_maskL","phaseLR_maskR",
-                          "phaseRL_maskL","phaseRL_maskR")))
-
-# Combine results into one list once done and export
-MCMC_results <- list(phaseLR_maskL = phaseLR_maskL,
-                     phaseLR_maskR = phaseLR_maskR,
-                     phaseRL_maskL = phaseRL_maskL,
-                     phaseRL_maskR = phaseRL_maskR)
-save(MCMC_results, file = "HCP_Social_Task/Analysis/Results/MCMC_results.RData")
