@@ -77,13 +77,13 @@ for (i in 1:nrow(subject_sample)){
   m = 2; n_u = 2
   
   # Indices of parameters
-  A_idxs <- matrix(c(2,1,
+  A_idxs <- matrix(c(1,1,
+                     2,1,
                      1,2,
-                     1,1,
                      2,2), byrow = T, ncol = 2)
-  B_idxs <- matrix(c(2,2,1,
+  B_idxs <- matrix(c(2,1,1,
+                     2,2,1,
                      2,1,2,
-                     2,1,1,
                      2,2,2), byrow = T, ncol = 3)
   C_idxs <- matrix(c(1,1,
                      2,1), byrow = T, ncol = 2)
@@ -190,8 +190,8 @@ for (i in 1:nrow(subject_sample)){
     
     y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
     
-    # Apply constant shift as estimated by beta
-    y_pred = sweep(y_pred, 2, beta, "+")
+    # Apply constant shift as estimated by beta to observed curve
+    y_obs = sweep(y_obs, 2, beta, "-")
     ##########################################################################
     
     # Choose colors for each region
