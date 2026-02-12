@@ -143,7 +143,7 @@ for (i in 1:length(subjects)){
     y_obs <- y_obs * scale
     
     # Save/export data
-    dat <- list(times = times[-1], u = u, y_obs = y_obs)
+    dat <- list(times = times[-1], u = u[-1,], y_obs = y_obs)
     save(dat, file = paste0("HCP_Social_Task/Analysis/Sensitivity_Sim/SPMpar_MCMCdgm/Data/sub-",sub,"_",conditions[j],".RData"))
     
     # Write observed signal to a MATLAB file for SPM 
