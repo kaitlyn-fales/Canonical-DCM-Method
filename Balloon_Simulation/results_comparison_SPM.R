@@ -255,10 +255,10 @@ rm(list = setdiff(ls(), c("get_summary","unstruct_paramMats")))
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7)
 nu = truth
 
-# Diagonal of A estimated
+# Diagonal of A estimated - zero hemodynamics
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/balloon_diagA_out.mat"))
+result <- readMat(paste0(path,"/balloon_diagA_nonzero_out.mat"))
 
 # Inputs - vectorize
 mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
@@ -349,14 +349,14 @@ p1 <- df %>%
 ############################################################################
 rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats")))
 
-# Simple model with diag A and diag B est
+# Simple model with diag A and diag B est, zero hemodynamics
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7)
 nu = truth
 
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/balloon_diagAB_out.mat"))
+result <- readMat(paste0(path,"/balloon_diagAB_nonzero_out.mat"))
 
 # Inputs - vectorize
 mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
