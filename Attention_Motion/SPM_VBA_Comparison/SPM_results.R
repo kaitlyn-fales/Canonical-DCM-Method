@@ -18,7 +18,7 @@ unstruct_paramMats = function(params, idxs){
 get_summary <- function(mu,sigma2){
   
   # Set alpha level
-  alpha = 0.1
+  alpha = 0.05
   
   intervals <- matrix(NA, nrow=length(mu), ncol=2)
   for (i in 1:nrow(intervals)){
@@ -27,10 +27,8 @@ get_summary <- function(mu,sigma2){
     intervals[i,] <- c(q_lower, q_upper)
   }
   
-  df <- data.frame(mu,intervals)
-  colnames(df) <- c("mean","q5","q95")
-  
-  df$CI_length <- abs(df$q95-df$q5)
+  df <- data.frame(mu,sd = sqrt(sigma2),intervals)
+  colnames(df) <- c("mean","sd","2.5%","97.5%")
   
   return(df)
 }
@@ -50,8 +48,8 @@ idxs <- list(A_idxs = A_idxs,
              C_idxs = C_idxs)
 
 # Read in file
-means <- readMat("Attention_Motion/SPM VBA Comparison/means_SPM.mat")
-vars <- readMat("Attention_Motion/SPM VBA Comparison/variances_SPM.mat")
+means <- readMat("Attention_Motion/SPM_VBA_Comparison/means_SPM.mat")
+vars <- readMat("Attention_Motion/SPM_VBA_Comparison/variances_SPM.mat")
 
 # Grab posterior means
 means$B <- list(means$B[,,1],means$B[,,2],means$B[,,3])
@@ -68,7 +66,7 @@ result <- get_summary(mu,sigma2)
 result <- round(result, digits=4)
 
 # Export results
-write.csv(result, "Attention_Motion/SPM VBA Comparison/SPM_summary.csv")
+write.csv(result, "Attention_Motion/SPM_VBA_Comparison/SPM_summary.csv")
 
 
 

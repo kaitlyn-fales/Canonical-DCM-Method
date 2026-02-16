@@ -9,8 +9,8 @@ library(posterior)
 # Summarize results from MCMC
 load("Attention_Motion/Output/attention_motion_draws.RData")
 
-results <- summarize_draws(draws_df)
-MCMC <- cbind(results[c(5:8,12:14),c(1:2,6:7)],CI_length = abs(results$q95-results$q5)[c(5:8,12:14)])
+results <- summarize_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975))) 
+MCMC <- results[c(5:8,12:14),]
 MCMC <- cbind(MCMC[,1],round(MCMC[,2:5], digits = 4))
 write.csv(MCMC, "Attention_Motion/Output/MCMC_summary.csv")
 
@@ -57,7 +57,7 @@ names(par.labs) <- SPM$par
 df %>% 
   ggplot(mapping = aes(x = par, y = mean, color = Method)) +
   geom_point(shape = 19, size = 2, position=position_dodge(width=0.8)) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), 
+  geom_errorbar(aes(ymax = X97.5., ymin = X2.5.), 
                 position=position_dodge(width=0.8),
                 width = 0.4, linewidth = 0.8) +
   geom_hline(yintercept = 0, linetype = "dotted") +

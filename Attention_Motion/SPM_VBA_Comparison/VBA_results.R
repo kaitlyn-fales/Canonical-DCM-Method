@@ -5,7 +5,7 @@ library(R.matlab)
 # Function
 get_summary <- function(mu,Sigma){
   
-  alpha = 0.1
+  alpha = 0.05
   
   intervals <- matrix(NA, nrow=length(mu), ncol=2)
   for (i in 1:nrow(intervals)){
@@ -14,22 +14,20 @@ get_summary <- function(mu,Sigma){
     intervals[i,] <- c(q_lower, q_upper)
   }
   
-  df <- data.frame(mu,intervals)
-  colnames(df) <- c("mean","q5","q95")
-  
-  df$CI_length <- abs(df$q95-df$q5)
+  df <- data.frame(mu,sd = sqrt(diag(Sigma)),intervals)
+  colnames(df) <- c("mean","sd","2.5%","97.5%")
   
   return(df)
 }
 
 
-file <- readMat("Attention_Motion/SPM VBA Comparison/VBA_results.mat")
+file <- readMat("Attention_Motion/SPM_VBA_Comparison/VBA_results.mat")
 mu <- file$p2[[3]][1:7]
 Sigma <- file$p2[[4]][1:7,1:7]
 result <- get_summary(mu,Sigma)
 result <- round(result, digits=4)
 
-write.csv(result, "Attention_Motion/SPM VBA Comparison/VBA_summary.csv")
+write.csv(result, "Attention_Motion/SPM_VBA_Comparison/VBA_summary.csv")
 
 
 
