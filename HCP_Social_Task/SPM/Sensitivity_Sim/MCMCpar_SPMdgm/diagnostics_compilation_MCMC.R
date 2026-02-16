@@ -3,7 +3,7 @@ library(posterior)
 library(mcmcse)
 library(momentLS)
 
-path <- paste0(getwd(),"/HCP_Social_Task/SPM/Sensitivity_Sim/SPMpar_SPMdgm/Output")
+path <- paste0(getwd(),"/HCP_Social_Task/SPM/Sensitivity_Sim/MCMCpar_SPMdgm/Output")
 
 # Vector of subjects to loop through
 subjects <- c(100307,100408,101107,101309,101915,103111,103414,103818,105014,
