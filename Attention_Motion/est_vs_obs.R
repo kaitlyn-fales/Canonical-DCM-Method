@@ -26,10 +26,6 @@ u <- rbind(0,motion_dat$u)
 times <- c(0,motion_dat$times)
 y_obs <- motion_dat$y_obs
 
-# Compute SPM predicted shift (beta) - not available from program directly
-beta_offset <- colMeans(y_obs - y_pred_SPM)
-y_pred_SPM <- sweep(y_pred_SPM, 2, beta_offset, "+")
-
 # 3 nodes, 3 experimental inputs
 m = 3; n_u = 3
 
@@ -136,8 +132,8 @@ HRF_mu = function(mu,tp){
 # Convolve with HRF
 y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
 
-# Apply constant shift as estimated by beta
-y_pred = sweep(y_pred, 2, beta, "+")
+# Apply constant shift as estimated by beta to the data - not predicted signal for ease of viewing
+y_obs = sweep(y_obs, 2, beta, "-")
 ##########################################################################
 
 
