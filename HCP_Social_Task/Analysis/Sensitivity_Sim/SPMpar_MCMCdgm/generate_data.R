@@ -2,6 +2,7 @@ remove(list=ls())
 
 library(R.matlab)
 library(deSolve)
+library(dplyr)
 
 load("HCP_Social_Task/SPM/Results/SPM_results.RData")
 
@@ -82,12 +83,28 @@ input_u = function(t){
 
 ################################################################################
 
+# Empty list to store all subject achieved SNR
+SNR_list <- list()
+
+# Seed for reproducibility
+set.seed(1234)
+
 # Loop through and generate synthetic dataset
 for (i in 1:length(subjects)){
   
   sub <- subjects[i]
   
+  # Empty dataframe to store achieved SNR
+  subject_SNR <- matrix(NA, nrow = length(conditions), ncol = 2)
+  
+  # Empty vectors to store final scaling (if needed)
+  final_scale_flag <- numeric()
+  final_scale_vec <- numeric()
+  
   for (j in 1:length(conditions)){
+    
+    # Unique seed to determine noise
+    set.seed(1234 + i*100 + j)
     
     # Load data for u matrix
     load(paste0("HCP_Social_Task/Data/sub-",sub,"_",conditions[j],".RData"))
@@ -128,19 +145,51 @@ for (i in 1:length(subjects)){
     
     BOLD = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
     
-    # Add some white Gaussian noise according to SNR
-    SNR = 1.679376
-    variance <-  numeric()
-    y_obs <- matrix(NA, nrow = length(times)-1, ncol = m)
-    for (k in 1:m){
-      variance[k] <- (var(BOLD[,k])+(mean(BOLD[,k]))^2)/SNR
-      y_obs[,k] <- BOLD[,k] + rnorm(length(times)-1, mean = 0, sd = sqrt(variance[k]))
+    SNR <- 1.679376 # target (real SNR will be larger than this to avoid triggering SPM internal scaling)
+    y_obs <- matrix(NA, nrow = length(times) - 1, ncol = m)
+    variance <- numeric()
+    
+    # Add Gaussian noise but ensure range <= 4
+    R_signal <- max(BOLD) - min(BOLD)
+    max_allowed_noise_span <- 4 - R_signal
+    if (max_allowed_noise_span <= 0)
+      stop("Clean signal already has range >= 4: cannot add noise without triggering scaling.")
+    
+    for (k in 1:m) {
+      # target variance for given SNR
+      variance[k] <- (var(BOLD[, k]) + (mean(BOLD[, k]))^2) / SNR
+      
+      # draw Gaussian noise
+      noise <- rnorm(length(times) - 1, mean = 0, sd = sqrt(variance[k]))
+      
+      # compute span of noise and scale it if it would exceed allowed range
+      noise_span <- max(noise) - min(noise)
+      if (noise_span > max_allowed_noise_span) {
+        scale_factor <- max_allowed_noise_span / noise_span
+        noise <- noise * scale_factor
+      }
+      
+      # add noise to clean signal
+      y_obs[, k] <- BOLD[, k] + noise
     }
     
-    # Enforce scaling like SPM
+    # Compute achieved SNR (mean across columns) 
+    # SNR = var(signal) / var(noise)
+    achieved_SNR <- numeric(m)
+    for (k in 1:m) {
+      achieved_SNR[k] <- var(BOLD[, k]) / var(y_obs[, k] - BOLD[, k])
+    }
+    
+    # Final safety scaling like SPM, with flag to indicate when needed
     scale <- max(y_obs) - min(y_obs)
-    scale <- 4 / max(scale, 4)
-    y_obs <- y_obs * scale
+    final_scale_factor <- 4 / max(scale, 4)
+    y_obs <- y_obs * final_scale_factor
+    
+    final_scale_flag[j] <- ifelse(final_scale_factor < 1, 1, 0)
+    final_scale_vec[j] <- final_scale_factor
+    
+    # Save SNR results
+    subject_SNR[j,] <- achieved_SNR
     
     # Save/export data
     dat <- list(times = times[-1], u = u[-1,], y_obs = y_obs)
@@ -153,7 +202,17 @@ for (i in 1:length(subjects)){
     
   }
   
+  # Add subject ID and conditions names to SNR df
+  subject_SNR <- data.frame(subject_SNR,final_scale_flag,final_scale_vec)
+  subject_SNR$subject <- sub
+  subject_SNR$condition <- conditions
+  
+  SNR_list[[i]] <- subject_SNR
+  
 }
 
-
+# Save SNR_list
+SNR_df <- bind_rows(SNR_list)
+colnames(SNR_df)[1:2] <- c("V5_SNR","pSTS_SNR")
+save(SNR_df, file = "HCP_Social_Task/Analysis/Sensitivity_Sim/SPMpar_MCMCdgm/Data/sim_dat_SNR.RData")
 
