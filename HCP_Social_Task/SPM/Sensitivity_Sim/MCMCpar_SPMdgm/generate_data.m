@@ -55,20 +55,13 @@ for s = 1:length(subjects)
         C = zeros(2, 2);    
         C(:,1) = results(9:10); 
         
-        % Transform diagonal of A and B back to raw values (invert
+        % Transform diagonal of A back to raw values (invert
         % reparameterization)
         a_diag = diag(A);
-        b_diag = diag(B(:,:,2));
-        
-        b_raw = log(b_diag ./ (-0.5 .* a_diag)) + 1;
         a_raw = log(a_diag ./ (-0.5));
         
         % Put back into matrices
-        A(logical(eye(size(A)))) = a_raw;
-        
-        temp = B(:,:,2);                              
-        temp(logical(eye(size(temp)))) = b_raw;    
-        B(:,:,2) = temp;    
+        A(logical(eye(size(A)))) = a_raw;   
 
         clear MCMC_results results a_diag b_diag a_raw b_raw temp
 
