@@ -5,7 +5,7 @@ library(gridExtra)
 
 ############### Balloon data generating model #################################
 
-# Simple model with diag A est, zero hemodynamics
+# Simple model with diag A est, zero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7,0,0,0,0)
 nu = truth
 
@@ -92,13 +92,13 @@ p1 <- df %>%
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
-  ggtitle("Diagonal Parameters in A, Zero Hemodynamics") +
-  labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
+  ggtitle("Diagonal Parameters in A, No Delays") +
+  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
   annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
   annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
   annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
+  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
+  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
   annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
   theme(axis.text.x = element_blank(),
@@ -112,7 +112,7 @@ p1 <- df %>%
 ############################################################################
 rm(list = setdiff(ls(), "p1"))
 
-# Simple model with diag A and diag B est and zero hemodynamics
+# Simple model with diag A and diag B est and zero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7,0,0,0,0)
 nu = truth
 
@@ -199,13 +199,13 @@ p2 <- df %>%
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
-  ggtitle("Diagonal Parameters in A and B, Zero Hemodynamics") +
-  labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
+  ggtitle("Diagonal Parameters in A and B, No Delays") +
+  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
   annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
   annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
   annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
+  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
+  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
   annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
   theme(axis.text.x = element_blank(),
@@ -219,7 +219,7 @@ p2 <- df %>%
 ######################################################################
 rm(list = setdiff(ls(), c("p1","p2")))
 
-# Simple model with diag A est, nonzero hemodynamics
+# Simple model with diag A est, nonzero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7,0,0,0,0)
 nu = truth
 
@@ -306,13 +306,13 @@ p3 <- df %>%
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
-  ggtitle("Diagonal Parameters in A, Non-Zero Hemodynamics") +
-  labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
+  ggtitle("Diagonal Parameters in A, 1s Delays") +
+  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
   annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
   annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
   annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
+  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
+  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
   annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
   theme(axis.text.x = element_blank(),
@@ -413,13 +413,13 @@ p4 <- df %>%
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
-  ggtitle("Diagonal Parameters in A and B, Non-Zero Hemodynamics") +
-  labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
+  ggtitle("Diagonal Parameters in A and B, 1s Delays") +
+  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
   annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
   annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
   annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
+  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
+  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
   annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
   annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
   theme(axis.text.x = element_blank(),
