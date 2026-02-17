@@ -200,6 +200,10 @@ y_obs_ana = sapply(1:m, function(i) HRF_mu(analytic_sol[-1,i],times[-1]))
 
 par(mfrow = c(1,2))
 for (i in 1:m) plot(y_obs_ana[,i], type = 'l', col = i)
+
+true_signal <- y_obs_ana
+
+save(true_signal, file = "Balloon_Simulation/Data/canonical_sim_signal_diagA.RData")
 #############################
 
 
