@@ -37,20 +37,20 @@ for (i in 1:length(MCMC_results)){
   combined <- rbind(MCMC, SPM)
   
   p <- ggplot(combined, aes(x = factor(parameter), y = mean_alpha, group = Method, colour = Method)) +
-    geom_point(aes(shape = Method), size = 2.5, position = position_dodge(width = 0.6)) +
+    geom_point(aes(shape = Method), size = 2.5, position = position_dodge(width = 0.7)) +
     geom_errorbar(aes(ymin = q2.5_alpha, ymax = q97.5_alpha, group = Method),
-                  width = 0.6, position = position_dodge(width = 0.6)) +
+                  width = 0.6, position = position_dodge(width = 0.7)) +
     geom_point(aes(x = factor(parameter), y = true_vals), size = 3, shape = 8, colour = "black") +
     geom_hline(yintercept = 0, linetype = "dotted") +
     geom_vline(xintercept = c(4.5, 8.5), linetype = "dashed") +
     ggtitle(plot_titles[i]) +
-    labs(x = "", y = "") + ylim(c(-2.2,2.2)) +
+    labs(x = "", y = "") + ylim(c(-2.2,2.5)) +
     scale_color_brewer(palette = "Dark2") +
     annotate("text", x = 2.5, y = -2, label = "hat(alpha)[A]", parse = TRUE, size = 7) +
     annotate("text", x = 6.5, y = -2, label = "hat(alpha)[B]", parse = TRUE, size = 7) +
     annotate("text", x = 9.5, y = -2, label = "hat(alpha)[C]", parse = TRUE, size = 7) +
-    annotate("text", x = 1, y = 1.2, label = "True value", hjust = 0, size = 4) +
-    annotate("point", x = 0.7, y = 1.2, shape = 8, size = 3, color = "black") +
+    annotate("text", x = 5.2, y = 2, label = "True value", hjust = 0, size = 4) +
+    annotate("point", x = 5, y = 2, shape = 8, size = 3, color = "black") +
     theme(
       axis.text.x = element_blank(),
       axis.ticks.x = element_blank(),
@@ -73,7 +73,7 @@ for (i in 1:length(MCMC_results)){
 }
 
 grid.arrange(p1, p2, p3, p4, ncol=2, nrow=2,
-             top = textGrob("Group-Level Posterior Mean Estimates and 95% HPD Intervals",
+             top = textGrob("SPM Group-Level Parameters and Canonical DCM Data Generating Model",
                             gp = gpar(fontface = "bold", fontsize = 16)),
              bottom = textGrob("Parameter",
                                gp = gpar(fontface = "bold", fontsize = 14)),
