@@ -58,6 +58,9 @@ for i = 1:size(C_idxs,1)
     DCM.c(region, input) = 1;
 end
 
+% Delays (SPM standard delay is TR/2, but MCMC model has no delays)
+DCM.delays(1:n_regions) = 0;  % DCM.Y.dt / 2;
+
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
 DCM.options.two_state  = 0;       % single-state
