@@ -57,6 +57,10 @@ for i = 1:size(C_idxs,1)
     DCM.c(region, input) = 1;
 end
 
+% Add other required elements
+DCM.delays(1:n_regions) = DCM.Y.dt / 2; % 1s delays
+DCM.TE     = 0.04;                      % echo time
+
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
 DCM.options.two_state  = 0;       % single-state
