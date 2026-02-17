@@ -32,10 +32,10 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   result <- read_cmdstan_csv(files[i])
-  summary <- posterior::summarise_draws(result$post_warmup_draws)
+  summary <- posterior::summarise_draws(result$post_warmup_draws, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:13,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
@@ -68,8 +68,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -82,7 +82,7 @@ p1 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
@@ -130,10 +130,10 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   result <- read_cmdstan_csv(files[i])
-  summary <- posterior::summarise_draws(result$post_warmup_draws)
+  summary <- posterior::summarise_draws(result$post_warmup_draws, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:13,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
@@ -166,8 +166,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -180,7 +180,7 @@ p2 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
@@ -244,10 +244,10 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   result <- read_cmdstan_csv(files[i])
-  summary <- posterior::summarise_draws(result$post_warmup_draws)
+  summary <- posterior::summarise_draws(result$post_warmup_draws, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[8:41,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:22])
@@ -280,8 +280,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -294,7 +294,7 @@ p1 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 16.5, linetype = "dashed") +
   geom_vline(xintercept = 19.5, linetype = "dashed") +
@@ -343,10 +343,10 @@ param_summaries <- list()
 # For loop for average results across simulations
 for (i in 1:length(files)){
   result <- read_cmdstan_csv(files[i])
-  summary <- posterior::summarise_draws(result$post_warmup_draws)
+  summary <- posterior::summarise_draws(result$post_warmup_draws, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[8:41,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:22])
@@ -379,8 +379,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -393,7 +393,7 @@ p2 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 16.5, linetype = "dashed") +
   geom_vline(xintercept = 19.5, linetype = "dashed") +
