@@ -1,6 +1,5 @@
 %% =============================
-% Balloon model with diagonal parameters on A only and hemodynamic params
-% set to 0
+% Balloon model with diagonal parameters on A and B and no delays
 
 clear;clc;
 
@@ -52,12 +51,12 @@ DCM.Ep.C = C;
 DCM.Ep.D = DCM.d;
 
 % Hemodynamic parameters
-DCM.Ep.transit = [0; 0];   % tau
-DCM.Ep.decay   = 0;        % kappa
-DCM.Ep.epsilon = 0;        % epsilon
+DCM.Ep.transit = [-0.2; -0.3];   % tau
+DCM.Ep.decay   = -0.2;           % kappa
+DCM.Ep.epsilon = 0.15;           % epsilon
 
 % Add other required elements
-DCM.delays = zeros(DCM.n,1); % no delays
+DCM.delays(1:n_regions) = 0; % no delays
 DCM.TE     = 0.04;           % echo time
 
 % Task-based BOLD options
@@ -87,7 +86,7 @@ for r = 1:n_regions
 end
 
 % --- Experimental inputs
-load("U_mat.mat");
+load("Balloon_Simulation/Data/U_mat.mat");
 DCM.U.u    = U;
 DCM.U.name = input_names;                  % input names
 DCM.U.dt   = DCM.Y.dt;
@@ -97,11 +96,10 @@ DCM.U.dt   = DCM.Y.dt;
 
 % Save output simulated data and U matrix for R to then add noise to
 y_signal = Y.y;  % extract BOLD signal
-save('balloon_sim_signal_diagAB_zero.mat', 'y_signal', 'U');
+save('Balloon_Simulation/Data/balloon_sim_signal_diagAB_zero.mat', 'y_signal', 'U');
 
 %% ==============================
-% Balloon model with diagonal parameters on A only and hemodynamic params
-% notably non-zero (higher impact)
+% Balloon model with diagonal parameters on A and B and 1s delays (TR/2)
 
 clear; clc;
 
@@ -153,13 +151,13 @@ DCM.Ep.C = C;
 DCM.Ep.D = DCM.d;
 
 % Hemodynamic parameters
-DCM.Ep.transit = [-0.2; -0.3];   % tau
+DCM.Ep.transit = [-0.2; -0.3];% tau
 DCM.Ep.decay   = -0.2;        % kappa
 DCM.Ep.epsilon = 0.15;        % epsilon
 
 % Add other required elements
-DCM.delays = zeros(DCM.n,1); % no delays
-DCM.TE     = 0.04;           % echo time
+DCM.delays(1:n_regions) = DCM.Y.dt / 2; % 1s delays
+DCM.TE     = 0.04;                      % echo time
 
 % Task-based BOLD options
 DCM.options.nonlinear  = 0;       % bilinear
@@ -188,7 +186,7 @@ for r = 1:n_regions
 end
 
 % --- Experimental inputs
-load("U_mat.mat");
+load("Balloon_Simulation/Data/U_mat.mat");
 DCM.U.u    = U;
 DCM.U.name = input_names;                  % input names
 DCM.U.dt   = DCM.Y.dt;
@@ -198,4 +196,4 @@ DCM.U.dt   = DCM.Y.dt;
 
 % Save output simulated data and U matrix for R to then add noise to
 y_signal = Y.y;  % extract BOLD signal
-save('balloon_sim_signal_diagAB_nonzero.mat', 'y_signal', 'U');
+save('Balloon_Simulation/Data/balloon_sim_signal_diagAB_nonzero.mat', 'y_signal', 'U');
