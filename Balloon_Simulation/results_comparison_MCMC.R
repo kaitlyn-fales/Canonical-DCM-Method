@@ -37,10 +37,10 @@ for (i in 1:length(files)){
   # nu_A[3] and nu_A[4]
   draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
   
-  summary <- summarise_draws(draws_df)
+  summary <- posterior::summarise_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:13,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
@@ -69,8 +69,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -78,7 +78,7 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Export resulting post. means for est vs. obs
+# Export resulting post. means 
 post_means <- df[,3:4]
 save(post_means, file = paste(path,"balloon_post_means_diagA_zero.RData",sep = "/"))
 
@@ -88,7 +88,7 @@ p1 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
@@ -144,10 +144,10 @@ for (i in 1:length(files)){
   # nu_A[3] and nu_A[4]
   draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
   
-  summary <- summarise_draws(draws_df)
+  summary <- posterior::summarise_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:14,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
@@ -176,8 +176,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -185,7 +185,7 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Export resulting post. means for est vs. obs
+# Export resulting post. means 
 post_means <- df[,3:4]
 save(post_means, file = paste(path,"balloon_post_means_diagAB_zero.RData",sep = "/"))
 
@@ -195,7 +195,7 @@ p2 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
@@ -251,10 +251,10 @@ for (i in 1:length(files)){
   # nu_A[3] and nu_A[4]
   draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
   
-  summary <- summarise_draws(draws_df)
+  summary <- posterior::summarise_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:13,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
@@ -283,8 +283,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -292,7 +292,7 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Export resulting post. means for est vs. obs
+# Export resulting post. means 
 post_means <- df[,3:4]
 save(post_means, file = paste(path,"balloon_post_means_diagA_nonzero.RData",sep = "/"))
 
@@ -302,7 +302,7 @@ p3 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
@@ -326,7 +326,7 @@ p3 <- df %>%
 ############################################################################
 rm(list = setdiff(ls(), c("p1","p2","p3")))
 
-# Simple model with diag A and diag B est and nonzero hemodynamics
+# Simple model with diag A and diag B est and delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7,0,0,0,0)
 nu = truth
 
@@ -358,10 +358,10 @@ for (i in 1:length(files)){
   # nu_A[3] and nu_A[4]
   draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
   
-  summary <- summarise_draws(draws_df)
+  summary <- posterior::summarise_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:14,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
@@ -390,8 +390,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -399,7 +399,7 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Export resulting post. means for est vs. obs
+# Export resulting post. means 
 post_means <- df[,3:4]
 save(post_means, file = paste(path,"balloon_post_means_diagAB_nonzero.RData",sep = "/"))
 
@@ -409,7 +409,7 @@ p4 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
@@ -456,7 +456,7 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][11:15]
+temp <- temp[grepl("draws", temp)][21:25]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -478,10 +478,10 @@ for (i in 1:length(files)){
   # nu_A[3] and nu_A[4]
   draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
   
-  summary <- summarise_draws(draws_df)
+  summary <- posterior::summarise_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:13,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
@@ -510,8 +510,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -519,7 +519,7 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Export resulting post. means for est vs. obs
+# Export resulting post. means 
 post_means <- df[,3:4]
 save(post_means, file = paste(path,"canonical_post_means_diagA.RData",sep = "/"))
 
@@ -529,7 +529,7 @@ p1 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
@@ -563,7 +563,7 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][16:20]
+temp <- temp[grepl("draws", temp)][26:30]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -585,10 +585,10 @@ for (i in 1:length(files)){
   # nu_A[3] and nu_A[4]
   draws_df[,6:7] <- suppressWarnings(-0.5*exp(draws_df[,6:7]))
   
-  summary <- summarise_draws(draws_df)
+  summary <- posterior::summarise_draws(draws_df, mean, sd, ~quantile(.x, probs = c(0.025, 0.975)))
   summary <- summary[4:14,]
-  summary$coverage <- ifelse(truth >= summary$q5 & truth <= summary$q95, 1, 0)
-  summary$length <- abs(summary$q95-summary$q5)
+  summary$coverage <- ifelse(truth >= summary$`2.5%` & truth <= summary$`97.5%`, 1, 0)
+  summary$length <- abs(summary$`97.5%`-summary$`2.5%`)
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
@@ -617,8 +617,8 @@ avg_summ <- all_summ %>%
   group_by(variable) %>%
   summarise(
     mean = mean(mean),
-    q5   = mean(q5),
-    q95  = mean(q95),
+    q2.5   = mean(`2.5%`),
+    q97.5  = mean(`97.5%`),
     .groups = "drop"
   ) %>%
   arrange(variable)
@@ -626,7 +626,7 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Export resulting post. means for est vs. obs
+# Export resulting post. means 
 post_means <- df[,3:4]
 save(post_means, file = paste(path,"canonical_post_means_diagAB.RData",sep = "/"))
 
@@ -636,7 +636,7 @@ p2 <- df %>%
   ggplot(aes(x = x, y = mean)) +
   geom_point(shape = 1, size = 4) +
   geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q95, ymin = q5), linewidth = 0.8, width = 0.5) +
+  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
