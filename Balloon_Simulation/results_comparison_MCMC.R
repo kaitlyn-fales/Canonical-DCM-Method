@@ -50,14 +50,18 @@ for (i in 1:length(files)){
   length_nu[i] <- mean(summary$length[1:6])
   length[i] <- mean(summary$length)
   
+  # Export post. means 
+  post_means <- summary[,1:2]
+  save(post_means, file = paste0(path,"/balloon_post_means_diagA_zero_",i,".RData"))
+  
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     mean_coverage = mean(coverage),
+                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
                                      mean_length_nu = mean(length_nu),
-                                     mean_length = mean(length))
+                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -77,10 +81,6 @@ avg_summ <- all_summ %>%
 
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
-
-# Export resulting post. means 
-post_means <- df[,3:4]
-save(post_means, file = paste(path,"balloon_post_means_diagA_zero.RData",sep = "/"))
 
 # Plot resulting average estimated nu vs true nu
 p1 <- df %>% 
@@ -157,14 +157,18 @@ for (i in 1:length(files)){
   length_nu[i] <- mean(summary$length[1:7])
   length[i] <- mean(summary$length)
   
+  # Export post. means 
+  post_means <- summary[,1:2]
+  save(post_means, file = paste0(path,"/balloon_post_means_diagAB_zero_",i,".RData"))
+  
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     mean_coverage = mean(coverage),
+                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
                                      mean_length_nu = mean(length_nu),
-                                     mean_length = mean(length))
+                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -184,10 +188,6 @@ avg_summ <- all_summ %>%
 
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
-
-# Export resulting post. means 
-post_means <- df[,3:4]
-save(post_means, file = paste(path,"balloon_post_means_diagAB_zero.RData",sep = "/"))
 
 # Plot resulting average estimated nu vs true nu
 p2 <- df %>% 
@@ -264,14 +264,18 @@ for (i in 1:length(files)){
   length_nu[i] <- mean(summary$length[1:6])
   length[i] <- mean(summary$length)
   
+  # Export post. means 
+  post_means <- summary[,1:2]
+  save(post_means, file = paste0(path,"/balloon_post_means_diagA_nonzero_",i,".RData"))
+  
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     mean_coverage = mean(coverage),
+                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
                                      mean_length_nu = mean(length_nu),
-                                     mean_length = mean(length))
+                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -291,10 +295,6 @@ avg_summ <- all_summ %>%
 
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
-
-# Export resulting post. means 
-post_means <- df[,3:4]
-save(post_means, file = paste(path,"balloon_post_means_diagA_nonzero.RData",sep = "/"))
 
 # Plot resulting average estimated nu vs true nu
 p3 <- df %>% 
@@ -371,14 +371,18 @@ for (i in 1:length(files)){
   length_nu[i] <- mean(summary$length[1:7])
   length[i] <- mean(summary$length)
   
+  # Export post. means 
+  post_means <- summary[,1:2]
+  save(post_means, file = paste0(path,"/balloon_post_means_diagAB_nonzero_",i,".RData"))
+  
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     mean_coverage = mean(coverage),
+                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
                                      mean_length_nu = mean(length_nu),
-                                     mean_length = mean(length))
+                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -398,10 +402,6 @@ avg_summ <- all_summ %>%
 
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
-
-# Export resulting post. means 
-post_means <- df[,3:4]
-save(post_means, file = paste(path,"balloon_post_means_diagAB_nonzero.RData",sep = "/"))
 
 # Plot resulting average estimated nu vs true nu
 p4 <- df %>% 
@@ -491,14 +491,18 @@ for (i in 1:length(files)){
   length_nu[i] <- mean(summary$length[1:6])
   length[i] <- mean(summary$length)
   
+  # Export post. means 
+  post_means <- summary[,1:2]
+  save(post_means, file = paste0(path,"/canonical_post_means_diagA_",i,".RData"))
+  
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     mean_coverage = mean(coverage),
+                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
                                      mean_length_nu = mean(length_nu),
-                                     mean_length = mean(length))
+                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -518,10 +522,6 @@ avg_summ <- all_summ %>%
 
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
-
-# Export resulting post. means 
-post_means <- df[,3:4]
-save(post_means, file = paste(path,"canonical_post_means_diagA.RData",sep = "/"))
 
 # Plot resulting average estimated nu vs true nu
 p1 <- df %>% 
@@ -598,14 +598,18 @@ for (i in 1:length(files)){
   length_nu[i] <- mean(summary$length[1:7])
   length[i] <- mean(summary$length)
   
+  # Export post. means 
+  post_means <- summary[,1:2]
+  save(post_means, file = paste0(path,"/canonical_post_means_diagAB_",i,".RData"))
+  
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     mean_coverage = mean(coverage),
+                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
                                      mean_length_nu = mean(length_nu),
-                                     mean_length = mean(length))
+                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -625,10 +629,6 @@ avg_summ <- all_summ %>%
 
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
-
-# Export resulting post. means 
-post_means <- df[,3:4]
-save(post_means, file = paste(path,"canonical_post_means_diagAB.RData",sep = "/"))
 
 # Plot resulting average estimated nu vs true nu
 p2 <- df %>% 
