@@ -169,33 +169,33 @@ lines(x = times, y = u[,1], type = 'l',col = 'black', lty = 3)
 lines(x = times, y = u[,2]/2, type = 'l',col = 'black', lty = 2)
 lines(x = times, y = u[,3]/4, type = 'l',col = 'black')
 
-# Calculate MSE and boostrapped SE
-bootstrap_mse <- function(y_obs, y_pred, B = 10000, seed = 1234) {
+# Calculate MSE and bootstrapped SE (block bootstrap to account for fMRI temporal dependence)
+bootstrap_mse <- function(y_obs, y_pred, B = 10000, block_len = 10, seed = 1234) {
   stopifnot(length(y_obs) == length(y_pred))
   set.seed(seed)
   
-  # point estimate
+  n <- length(y_obs)
   mse <- mean((y_obs - y_pred)^2)
   
-  # bootstrap replicates
-  n <- length(y_obs)
-  mse_boot <- replicate(B, {
-    idx <- sample(seq_len(n), replace = TRUE)
-    mean((y_obs[idx] - y_pred[idx])^2)
-  })
+  mse_boot <- numeric(B)
+  starts <- 1:(n - block_len + 1)
   
-  # standard error and CI
+  for (b in seq_len(B)) {
+    idx <- unlist(lapply(sample(starts, size = ceiling(n / block_len), replace = TRUE),
+                         function(s) seq(s, length.out = block_len)))
+    idx <- idx[seq_len(n)]  # trim to length n
+    mse_boot[b] <- mean((y_obs[idx] - y_pred[idx])^2)
+  }
+  
   se <- sd(mse_boot)
   ci <- quantile(mse_boot, c(0.025, 0.975))
   
   out <- data.frame(
-    MSE = mse,
-    SE = se,
-    CI_lower = ci[1],
-    CI_upper = ci[2]
+    MSE = round(mse, 4),
+    SE = round(se, 4),
+    CI_lower = round(ci[1], 4),
+    CI_upper = round(ci[2], 4)
   )
-  
-  out[] <- lapply(out, round, digits = 4)
   out
 }
 
