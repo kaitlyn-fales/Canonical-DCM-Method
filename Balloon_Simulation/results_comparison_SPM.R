@@ -103,6 +103,12 @@ mu <- unstruct_paramMats(means,idxs)
 # Get results
 summary <- get_summary(mu,vars)
 
+coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
+                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
+                                     mean_length_nu = mean(summary$length),
+                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+round(coverage_length_result,digits = 3)
+
 # Make df for plotting
 x <- seq_len(nrow(summary))
 df <- data.frame(x, nu, summary)
@@ -206,6 +212,12 @@ mu <- unstruct_paramMats(means,idxs)
 
 # Get results
 summary <- get_summary(mu,vars)
+
+coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
+                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
+                                     mean_length_nu = mean(summary$length),
+                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+round(coverage_length_result,digits = 3)
 
 # Make df for plotting
 x <- seq_len(nrow(summary))
@@ -316,6 +328,12 @@ mu <- unstruct_paramMats(means,idxs)
 # Get results
 summary <- get_summary(mu,vars)
 
+coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
+                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
+                                     mean_length_nu = mean(summary$length),
+                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+round(coverage_length_result,digits = 3)
+
 # Make df for plotting
 x <- seq_len(nrow(summary))
 df <- data.frame(x, nu, summary)
@@ -420,6 +438,12 @@ mu <- unstruct_paramMats(means,idxs)
 # Get results
 summary <- get_summary(mu,vars)
 
+coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
+                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
+                                     mean_length_nu = mean(summary$length),
+                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+round(coverage_length_result,digits = 3)
+
 # Make df for plotting
 x <- seq_len(nrow(summary))
 df <- data.frame(x, nu, summary)
@@ -518,6 +542,12 @@ mu <- unstruct_paramMats(means,idxs)
 
 # Get results
 summary <- get_summary(mu,vars)
+
+coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
+                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
+                                     mean_length_nu = mean(summary$length),
+                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+round(coverage_length_result,digits = 3)
 
 # Make df for plotting
 x <- seq_len(nrow(summary))
@@ -623,6 +653,12 @@ mu <- unstruct_paramMats(means,idxs)
 
 # Get results
 summary <- get_summary(mu,vars)
+
+coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
+                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
+                                     mean_length_nu = mean(summary$length),
+                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+round(coverage_length_result,digits = 3)
 
 # Make df for plotting
 x <- seq_len(nrow(summary))

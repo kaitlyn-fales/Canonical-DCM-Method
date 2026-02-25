@@ -28,6 +28,8 @@ coverage <- numeric()
 length_nu <- numeric()
 length <- numeric()
 param_summaries <- list()
+se_coverage <- numeric()
+se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -45,10 +47,12 @@ for (i in 1:length(files)){
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
   coverage[i] <- mean(summary$coverage)
+  se_coverage[i] <- sd(summary$coverage[1:6])/sqrt(6)
   
   # Length
   length_nu[i] <- mean(summary$length[1:6])
   length[i] <- mean(summary$length)
+  se_length[i] <- sd(summary$length[1:6])/sqrt(6)
   
   # Export post. means 
   post_means <- summary[,1:2]
@@ -59,9 +63,9 @@ for (i in 1:length(files)){
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
+                                     se_coverage_nu = mean(se_coverage),
                                      mean_length_nu = mean(length_nu),
-                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
+                                     se_length_nu = mean(se_length))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -135,6 +139,8 @@ coverage <- numeric()
 length_nu <- numeric()
 length <- numeric()
 param_summaries <- list()
+se_coverage <- numeric()
+se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -152,10 +158,12 @@ for (i in 1:length(files)){
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
   coverage[i] <- mean(summary$coverage)
+  se_coverage[i] <- sd(summary$coverage[1:7])/sqrt(7)
   
   # Length
   length_nu[i] <- mean(summary$length[1:7])
   length[i] <- mean(summary$length)
+  se_length[i] <- sd(summary$length[1:7])/sqrt(7)
   
   # Export post. means 
   post_means <- summary[,1:2]
@@ -166,9 +174,9 @@ for (i in 1:length(files)){
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
+                                     se_coverage_nu = mean(se_coverage),
                                      mean_length_nu = mean(length_nu),
-                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
+                                     se_length_nu = mean(se_length))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -242,6 +250,8 @@ coverage <- numeric()
 length_nu <- numeric()
 length <- numeric()
 param_summaries <- list()
+se_coverage <- numeric()
+se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -259,10 +269,12 @@ for (i in 1:length(files)){
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
   coverage[i] <- mean(summary$coverage)
+  se_coverage[i] <- sd(summary$coverage[1:6])/sqrt(6)
   
   # Length
   length_nu[i] <- mean(summary$length[1:6])
   length[i] <- mean(summary$length)
+  se_length[i] <- sd(summary$length[1:6])/sqrt(6)
   
   # Export post. means 
   post_means <- summary[,1:2]
@@ -273,9 +285,9 @@ for (i in 1:length(files)){
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
+                                     se_coverage_nu = mean(se_coverage),
                                      mean_length_nu = mean(length_nu),
-                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
+                                     se_length_nu = mean(se_length))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -349,6 +361,8 @@ coverage <- numeric()
 length_nu <- numeric()
 length <- numeric()
 param_summaries <- list()
+se_coverage <- numeric()
+se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -366,10 +380,12 @@ for (i in 1:length(files)){
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
   coverage[i] <- mean(summary$coverage)
+  se_coverage[i] <- sd(summary$coverage[1:7])/sqrt(7)
   
   # Length
   length_nu[i] <- mean(summary$length[1:7])
   length[i] <- mean(summary$length)
+  se_length[i] <- sd(summary$length[1:7])/sqrt(7)
   
   # Export post. means 
   post_means <- summary[,1:2]
@@ -380,9 +396,9 @@ for (i in 1:length(files)){
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
+                                     se_coverage_nu = mean(se_coverage),
                                      mean_length_nu = mean(length_nu),
-                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
+                                     se_length_nu = mean(se_length))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -469,6 +485,8 @@ coverage <- numeric()
 length_nu <- numeric()
 length <- numeric()
 param_summaries <- list()
+se_coverage <- numeric()
+se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -486,10 +504,12 @@ for (i in 1:length(files)){
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
   coverage[i] <- mean(summary$coverage)
+  se_coverage[i] <- sd(summary$coverage[1:6])/sqrt(6)
   
   # Length
   length_nu[i] <- mean(summary$length[1:6])
   length[i] <- mean(summary$length)
+  se_length[i] <- sd(summary$length[1:6])/sqrt(6)
   
   # Export post. means 
   post_means <- summary[,1:2]
@@ -500,9 +520,9 @@ for (i in 1:length(files)){
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
+                                     se_coverage_nu = mean(se_coverage),
                                      mean_length_nu = mean(length_nu),
-                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
+                                     se_length_nu = mean(se_length))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -576,6 +596,8 @@ coverage <- numeric()
 length_nu <- numeric()
 length <- numeric()
 param_summaries <- list()
+se_coverage <- numeric()
+se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -593,10 +615,12 @@ for (i in 1:length(files)){
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
   coverage[i] <- mean(summary$coverage)
+  se_coverage[i] <- sd(summary$coverage[1:7])/sqrt(7)
   
   # Length
   length_nu[i] <- mean(summary$length[1:7])
   length[i] <- mean(summary$length)
+  se_length[i] <- sd(summary$length[1:7])/sqrt(7)
   
   # Export post. means 
   post_means <- summary[,1:2]
@@ -607,9 +631,9 @@ for (i in 1:length(files)){
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = sd(coverage_nu)/sqrt(length(files)),
+                                     se_coverage_nu = mean(se_coverage),
                                      mean_length_nu = mean(length_nu),
-                                     se_length_nu = sd(length_nu)/sqrt(length(files)))
+                                     se_length_nu = mean(se_length))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
