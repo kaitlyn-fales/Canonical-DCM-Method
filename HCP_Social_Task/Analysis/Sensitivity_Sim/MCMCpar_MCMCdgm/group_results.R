@@ -83,3 +83,34 @@ grid.arrange(p1, p2, p3, p4, ncol=2, nrow=2,
 
 ###################################################################
 
+
+################ Compiling information for table ##################
+
+result <- list()
+
+for (i in 1:length(truth)){
+  true_vals <- truth[[i]]$mean_alpha
+  
+  MCMC <- cbind(MCMC_results[[i]],true_vals)
+  SPM <- cbind(SPM_results[[i]],true_vals)
+  
+  MCMC$Method <- "CDCM"
+  SPM$Method <- "SPM"
+  combined <- rbind(MCMC, SPM)
+  
+  combined$coverage <- ifelse(combined$true_vals >= combined$q2.5_alpha & combined$true_vals <= combined$q97.5_alpha, 1, 0)
+  combined$correct_sign <- ifelse(sign(combined$true_vals) == sign(combined$mean_alpha), 1, 0)
+  combined$dist_to_truth <- abs(combined$mean_alpha - combined$true_vals)
+  
+  result_df <- combined %>% group_by(Method) %>% summarize(par_coverage = mean(coverage),
+                                                           correct_sign = mean(correct_sign),
+                                                           avg_dist_truth = round(mean(dist_to_truth), digits = 3),
+                                                           med_dist_truth = round(median(dist_to_truth), digits = 3))
+  result_df$condition <- names(truth)[i]
+  
+  result[[i]] <- result_df
+}
+
+bind_rows(result)
+
+###################################################################
