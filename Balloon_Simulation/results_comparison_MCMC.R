@@ -1,6 +1,13 @@
 library(posterior)
 library(grid)
 library(gridExtra)
+library(gtable)
+
+get_legend <- function(myplot) {
+  plot_grob <- ggplotGrob(myplot)
+  legend_index <- which(sapply(plot_grob$grobs, function(x) x$name) == "guide-box")
+  plot_grob$grobs[[legend_index]]
+}
 
 
 ############### Balloon data generating model #################################
@@ -86,35 +93,55 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Plot resulting average estimated nu vs true nu
-p1 <- df %>% 
-  filter(startsWith(as.character(variable), "nu_")) %>%
-  ggplot(aes(x = x, y = mean)) +
-  geom_point(shape = 1, size = 4) +
-  geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
+df_plot <- df %>%
+  filter(startsWith(as.character(variable), "nu_"))
+
+posterior_df <- df_plot %>%
+  mutate(Type = "Posterior mean")
+
+truth_df <- df_plot %>%
+  transmute(
+    x = x,
+    nu = nu,
+    Type = "True value"
+  )
+
+p1 <- ggplot() +
+  geom_point(data = posterior_df,
+             aes(x = x, y = mean, shape = Type, color = Type),
+             size = 4) +
+  geom_point(data = truth_df,
+             aes(x = x, y = nu, shape = Type, color = Type),
+             size = 6) +
+  geom_errorbar(data = posterior_df,
+                aes(x = x, ymin = q2.5, ymax = q97.5),
+                linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A, No Delays") +
-  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
-  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
-  annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
-  annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(color = "black"),
-        axis.title=element_text(size=12,face="bold"),
-        axis.text.y = element_text(size=12,face="bold"),
-        plot.title = element_text(size = 14)) 
+  labs(x = "", y = "", shape = "", color = "") +
+  ylim(c(-1.2, 2.2)) +
+  annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 6, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
+  scale_shape_manual(values = c("Posterior mean" = 1, "True value" = 8)) +
+  scale_color_manual(values = c("Posterior mean" = "black", "True value" = "blue")) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12)
+  )
 
 ############################################################################
-rm(list = setdiff(ls(), "p1"))
+rm(list = setdiff(ls(), c("p1","get_legend")))
 
 # Simple model with diag A and diag B est and zero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7,0,0,0,0)
@@ -197,35 +224,55 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Plot resulting average estimated nu vs true nu
-p2 <- df %>% 
-  filter(startsWith(as.character(variable), "nu_")) %>%
-  ggplot(aes(x = x, y = mean)) +
-  geom_point(shape = 1, size = 4) +
-  geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
+df_plot <- df %>%
+  filter(startsWith(as.character(variable), "nu_"))
+
+posterior_df <- df_plot %>%
+  mutate(Type = "Posterior mean")
+
+truth_df <- df_plot %>%
+  transmute(
+    x = x,
+    nu = nu,
+    Type = "True value"
+  )
+
+p2 <- ggplot() +
+  geom_point(data = posterior_df,
+             aes(x = x, y = mean, shape = Type, color = Type),
+             size = 4) +
+  geom_point(data = truth_df,
+             aes(x = x, y = nu, shape = Type, color = Type),
+             size = 6) +
+  geom_errorbar(data = posterior_df,
+                aes(x = x, ymin = q2.5, ymax = q97.5),
+                linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B, No Delays") +
-  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
-  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
-  annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
-  annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(color = "black"),
-        axis.title=element_text(size=12,face="bold"),
-        axis.text.y = element_text(size=12,face="bold"),
-        plot.title = element_text(size = 14)) 
+  labs(x = "", y = "", shape = "", color = "") +
+  ylim(c(-1.2, 2.2)) +
+  annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5.5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 7, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
+  scale_shape_manual(values = c("Posterior mean" = 1, "True value" = 8)) +
+  scale_color_manual(values = c("Posterior mean" = "black", "True value" = "blue")) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12)
+  )
 
 ######################################################################
-rm(list = setdiff(ls(), c("p1","p2")))
+rm(list = setdiff(ls(), c("p1","p2","get_legend")))
 
 # Simple model with diag A est, nonzero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7,0,0,0,0)
@@ -308,35 +355,55 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Plot resulting average estimated nu vs true nu
-p3 <- df %>% 
-  filter(startsWith(as.character(variable), "nu_")) %>%
-  ggplot(aes(x = x, y = mean)) +
-  geom_point(shape = 1, size = 4) +
-  geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
+df_plot <- df %>%
+  filter(startsWith(as.character(variable), "nu_"))
+
+posterior_df <- df_plot %>%
+  mutate(Type = "Posterior mean")
+
+truth_df <- df_plot %>%
+  transmute(
+    x = x,
+    nu = nu,
+    Type = "True value"
+  )
+
+p3 <- ggplot() +
+  geom_point(data = posterior_df,
+             aes(x = x, y = mean, shape = Type, color = Type),
+             size = 4) +
+  geom_point(data = truth_df,
+             aes(x = x, y = nu, shape = Type, color = Type),
+             size = 6) +
+  geom_errorbar(data = posterior_df,
+                aes(x = x, ymin = q2.5, ymax = q97.5),
+                linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A, 1s Delays") +
-  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
-  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
-  annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
-  annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(color = "black"),
-        axis.title=element_text(size=12,face="bold"),
-        axis.text.y = element_text(size=12,face="bold"),
-        plot.title = element_text(size = 14)) 
+  labs(x = "", y = "", shape = "", color = "") +
+  ylim(c(-1.2, 2.2)) +
+  annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 6, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
+  scale_shape_manual(values = c("Posterior mean" = 1, "True value" = 8)) +
+  scale_color_manual(values = c("Posterior mean" = "black", "True value" = "blue")) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12)
+  )
 
 ############################################################################
-rm(list = setdiff(ls(), c("p1","p2","p3")))
+rm(list = setdiff(ls(), c("p1","p2","p3","get_legend")))
 
 # Simple model with diag A and diag B est and delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7,0,0,0,0)
@@ -419,46 +486,88 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Plot resulting average estimated nu vs true nu
-p4 <- df %>% 
-  filter(startsWith(as.character(variable), "nu_")) %>%
-  ggplot(aes(x = x, y = mean)) +
-  geom_point(shape = 1, size = 4) +
-  geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
+df_plot <- df %>%
+  filter(startsWith(as.character(variable), "nu_"))
+
+posterior_df <- df_plot %>%
+  mutate(Type = "Posterior mean")
+
+truth_df <- df_plot %>%
+  transmute(
+    x = x,
+    nu = nu,
+    Type = "True value"
+  )
+
+p4 <- ggplot() +
+  geom_point(data = posterior_df,
+             aes(x = x, y = mean, shape = Type, color = Type),
+             size = 4) +
+  geom_point(data = truth_df,
+             aes(x = x, y = nu, shape = Type, color = Type),
+             size = 6) +
+  geom_errorbar(data = posterior_df,
+                aes(x = x, ymin = q2.5, ymax = q97.5),
+                linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B, 1s Delays") +
-  labs(x = "", y = "") + ylim(c(-0.8,2.2)) + 
-  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.8, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.8, label = "Posterior mean", hjust = 0, size = 5) +
-  annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
-  annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(color = "black"),
-        axis.title=element_text(size=12,face="bold"),
-        axis.text.y = element_text(size=12,face="bold"),
-        plot.title = element_text(size = 14)) 
+  labs(x = "", y = "", shape = "", color = "") +
+  ylim(c(-1.2, 2.2)) +
+  annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5.5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 7, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
+  scale_shape_manual(values = c("Posterior mean" = 1, "True value" = 8)) +
+  scale_color_manual(values = c("Posterior mean" = "black", "True value" = "blue")) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12)
+  )
 
-# Plot both
-grid.arrange(p1, p2, p3, p4, ncol=2, nrow=2,
-             top = textGrob("MCMC Parameter Estimates from Balloon Hemodynamic Data Generating Model",
-                            gp = gpar(fontface = "bold", fontsize = 16)),
-             bottom = textGrob("Parameter",
-                               gp = gpar(fontface = "bold", fontsize = 14)),
-             left = textGrob("Average Posterior Mean Estimate",
-                             gp = gpar(fontface = "bold", fontsize = 14), rot = 90))
+# Plot all 
+plot_list <- list(p1, p2, p3, p4)
+
+shared_legend <- get_legend(plot_list[[1]])
+
+plot_list_nolegend <- lapply(plot_list, function(p) {
+  p + theme(legend.position = "none")
+})
+
+plots_grid <- arrangeGrob(
+  grobs = plot_list_nolegend,
+  ncol = 2,
+  nrow = 2,
+  top = textGrob("CDCM Parameter Estimates from SPM Data Generating Model",
+                 gp = gpar(fontface = "bold", fontsize = 16)),
+  bottom = textGrob("Parameter",
+                    gp = gpar(fontface = "bold", fontsize = 14)),
+  left = textGrob("Average Posterior Mean Estimate",
+                  gp = gpar(fontface = "bold", fontsize = 14), rot = 90)
+)
+
+final_plot <- arrangeGrob(
+  plots_grid,
+  shared_legend,
+  ncol = 1,
+  heights = c(10, 1)
+)
+
+grid.newpage()
+grid.draw(final_plot)
 
 
 ################################################################################
 
-rm(list = ls())
+rm(list = setdiff(ls(), "get_legend"))
 
 ############### Canonical data generating model #################################
 
@@ -543,35 +652,55 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Plot resulting average estimated nu vs true nu
-p1 <- df %>% 
-  filter(startsWith(as.character(variable), "nu_")) %>%
-  ggplot(aes(x = x, y = mean)) +
-  geom_point(shape = 1, size = 4) +
-  geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
+df_plot <- df %>%
+  filter(startsWith(as.character(variable), "nu_"))
+
+posterior_df <- df_plot %>%
+  mutate(Type = "Posterior mean")
+
+truth_df <- df_plot %>%
+  transmute(
+    x = x,
+    nu = nu,
+    Type = "True value"
+  )
+
+p1 <- ggplot() +
+  geom_point(data = posterior_df,
+             aes(x = x, y = mean, shape = Type, color = Type),
+             size = 4) +
+  geom_point(data = truth_df,
+             aes(x = x, y = nu, shape = Type, color = Type),
+             size = 6) +
+  geom_errorbar(data = posterior_df,
+                aes(x = x, ymin = q2.5, ymax = q97.5),
+                linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A") +
-  labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 6, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
-  annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
-  annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(color = "black"),
-        axis.title=element_text(size=12,face="bold"),
-        axis.text.y = element_text(size=12,face="bold"),
-        plot.title = element_text(size = 14)) 
+  labs(x = "", y = "", shape = "", color = "") +
+  ylim(c(-1.1, 1.5)) +
+  annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 6, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
+  scale_shape_manual(values = c("Posterior mean" = 1, "True value" = 8)) +
+  scale_color_manual(values = c("Posterior mean" = "black", "True value" = "blue")) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12)
+  )
 
 ############################################################################
-rm(list = setdiff(ls(), "p1"))
+rm(list = setdiff(ls(), c("p1","get_legend")))
 
 # Simple model with diag A and diag B est
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.05,0.7,0.1,0.1,0,0)
@@ -654,41 +783,83 @@ avg_summ <- all_summ %>%
 x <- seq_len(nrow(avg_summ))
 df <- data.frame(x, nu, avg_summ)
 
-# Plot resulting average estimated nu vs true nu
-p2 <- df %>% 
-  filter(startsWith(as.character(variable), "nu_")) %>%
-  ggplot(aes(x = x, y = mean)) +
-  geom_point(shape = 1, size = 4) +
-  geom_point(aes(x = x, y = nu), shape = 8, color = "blue", size = 6) +
-  geom_errorbar(aes(ymax = q97.5, ymin = q2.5), linewidth = 0.8, width = 0.5) +
+df_plot <- df %>%
+  filter(startsWith(as.character(variable), "nu_"))
+
+posterior_df <- df_plot %>%
+  mutate(Type = "Posterior mean")
+
+truth_df <- df_plot %>%
+  transmute(
+    x = x,
+    nu = nu,
+    Type = "True value"
+  )
+
+p2 <- ggplot() +
+  geom_point(data = posterior_df,
+             aes(x = x, y = mean, shape = Type, color = Type),
+             size = 4) +
+  geom_point(data = truth_df,
+             aes(x = x, y = nu, shape = Type, color = Type),
+             size = 6) +
+  geom_errorbar(data = posterior_df,
+                aes(x = x, ymin = q2.5, ymax = q97.5),
+                linewidth = 0.8, width = 0.5) +
   geom_hline(yintercept = 0, linetype = "dotted") +
   geom_vline(xintercept = 4.5, linetype = "dashed") +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B") +
-  labs(x = "", y = "") + ylim(c(-0.8,1.8)) + 
-  annotate("text", x = 2.5, y = -0.8, label = "nu[A]", parse = TRUE, size = 8) +
-  annotate("text", x = 5.5, y = -0.8, label = "nu[B]", parse = TRUE, size = 8) +
-  annotate("text", x = 7, y = -0.8, label = "nu[C]", parse = TRUE, size = 8) +
-  annotate("point", x = 0.5, y = 1.7, shape = 1, size = 4, color = "black") +
-  annotate("text", x = 0.7, y = 1.7, label = "Posterior mean", hjust = 0, size = 5) +
-  annotate("point", x = 0.5, y = 1.55, shape = 8, size = 6, color = "blue") +
-  annotate("text", x = 0.7, y = 1.55, label = "True value", hjust = 0, size = 5) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(color = "black"),
-        axis.title=element_text(size=12,face="bold"),
-        axis.text.y = element_text(size=12,face="bold"),
-        plot.title = element_text(size = 14)) 
+  labs(x = "", y = "", shape = "", color = "") +
+  ylim(c(-1.1, 1.5)) +
+  annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
+  annotate("text", x = 5.5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
+  annotate("text", x = 7, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
+  scale_shape_manual(values = c("Posterior mean" = 1, "True value" = 8)) +
+  scale_color_manual(values = c("Posterior mean" = "black", "True value" = "blue")) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12)
+  )
 
 # Plot both
-grid.arrange(p1, p2, ncol=2, nrow=1,
-             top = textGrob("MCMC Parameter Estimates from Canonical Hemodynamic Data Generating Model",
-                            gp = gpar(fontface = "bold", fontsize = 16)),
-             bottom = textGrob("Parameter",
-                               gp = gpar(fontface = "bold", fontsize = 14)),
-             left = textGrob("Average Posterior Mean Estimate",
-                             gp = gpar(fontface = "bold", fontsize = 14), rot = 90))
+plot_list <- list(p1, p2)
+
+shared_legend <- get_legend(plot_list[[1]])
+
+plot_list_nolegend <- lapply(plot_list, function(p) {
+  p + theme(legend.position = "none")
+})
+
+plots_grid <- arrangeGrob(
+  grobs = plot_list_nolegend,
+  ncol = 2,
+  nrow = 1,
+  top = textGrob("CDCM Parameter Estimates from CDCM Data Generating Model",
+                 gp = gpar(fontface = "bold", fontsize = 16)),
+  bottom = textGrob("Parameter",
+                    gp = gpar(fontface = "bold", fontsize = 14)),
+  left = textGrob("Average Posterior Mean Estimate",
+                  gp = gpar(fontface = "bold", fontsize = 14), rot = 90)
+)
+
+final_plot <- arrangeGrob(
+  plots_grid,
+  shared_legend,
+  ncol = 1,
+  heights = c(10, 1)
+)
+
+grid.newpage()
+grid.draw(final_plot)
 
 
 ################################################################################
