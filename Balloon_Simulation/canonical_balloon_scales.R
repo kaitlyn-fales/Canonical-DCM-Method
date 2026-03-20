@@ -8,27 +8,57 @@ canonical_signal <- true_signal
 SPM_signal <- readMat("Balloon_Simulation/Data/balloon_sim_signal_diagA_zero.mat")
 balloon_signal <- SPM_signal$y.signal
 
-# Plot them on top of each other
+# Create layout: 2 plots on top, legend across bottom
+layout(matrix(c(1,2,3,3), nrow = 2, byrow = TRUE), heights = c(10, 1))
+
+par(
+  mar = c(4, 4, 2.5, 1),   
+  cex.lab = 1.1,           
+  cex.axis = 1.0,          
+  cex.main = 1.4,         
+  font.lab = 2,          
+  font.axis = 2,           
+  font.main = 2           
+)
+
 max_time = 150*2
 times <- seq(0, max_time, 2)
 
-par(mfrow = c(1,2))
+ylim_vals <- c(min(cbind(balloon_signal, canonical_signal)),
+               max(cbind(balloon_signal, canonical_signal)) * 1.15)
 
 # Region 1
-plot(x = times[-1], y = balloon_signal[,1], type = "l", xlab = "Time (s)", ylab = "Simulated BOLD Signal",
-     ylim = c(min(cbind(balloon_signal,canonical_signal)),max(cbind(balloon_signal,canonical_signal))*1.15),
+plot(times[-1], balloon_signal[,1], type = "l",
+     xlab = "Time (s)", ylab = "Simulated BOLD Signal",
+     ylim = ylim_vals,
      col = "black", lty = 1, lwd = 1.5, main = "Region 1")
-lines(x = times[-1], y = canonical_signal[,1], type = "l", col = "blue", lty = 2, lwd = 1.5)
-legend("topleft", legend = c("SPM", "Canonical DCM"), col = c("black","blue"), lty = c(1,2), horiz = T,
-       bty = "n", cex = 0.9, lwd = c(1.5,1.5))
+
+lines(times[-1], canonical_signal[,1],
+      col = "blue", lty = 2, lwd = 1.5)
 
 # Region 2
-plot(x = times[-1], y = balloon_signal[,2], type = "l", xlab = "Time (s)", ylab = "Simulated BOLD Signal",
-     ylim = c(min(cbind(balloon_signal,canonical_signal)),max(cbind(balloon_signal,canonical_signal))*1.15),
+plot(times[-1], balloon_signal[,2], type = "l",
+     xlab = "Time (s)", ylab = "Simulated BOLD Signal",
+     ylim = ylim_vals,
      col = "black", lty = 1, lwd = 1.5, main = "Region 2")
-lines(x = times[-1], y = canonical_signal[,2], type = "l", col = "blue", lty = 2, lwd = 1.5)
-legend("topleft", legend = c("SPM", "Canonical DCM"), col = c("black","blue"), lty = c(1,2), horiz = T,
-       bty = "n", cex = 0.9, lwd = c(1.5,1.5))
+
+lines(times[-1], canonical_signal[,2],
+      col = "blue", lty = 2, lwd = 1.5)
+
+# Legend panel
+par(mar = c(0, 0, 0, 0))
+plot.new()
+
+legend("center",
+       legend = c("SPM", "CDCM"),
+       col = c("black", "blue"),
+       lty = c(1, 2),
+       lwd = c(1.5, 1.5),
+       horiz = TRUE,
+       bty = "n",
+       cex = 1.2,
+       text.font = 2)
+
 
 
 # Function to estimate scale between simulated canonical and balloon signals
