@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(grid)
 library(gridExtra)
 library(R.matlab)
+library(gtable)
 
 # MCMC
 load("HCP_Social_Task/Analysis/Results/MCMC_results.RData")
@@ -20,23 +21,28 @@ plot_titles <- c("Phase LR Encoding and Mask L",
                  "Phase RL Encoding and Mask L",
                  "Phase RL Encoding and Mask R")
 
+plot_list <- vector("list", length(MCMC_results))
+
 # For loop to make plots
-for (i in 1:length(MCMC_results)){
+for (i in 1:length(MCMC_results)) {
   MCMC <- MCMC_results[[i]]
-  SPM <- SPM_results[[i]]
+  SPM  <- SPM_results[[i]]
   
-  MCMC$Method <- "Canonical DCM"
-  SPM$Method <- "SPM"
+  MCMC$Method <- "CDCM"
+  SPM$Method  <- "SPM"
   combined <- rbind(MCMC, SPM)
   
-  p <- ggplot(combined, aes(x = factor(parameter), y = mean_alpha, group = Method, colour = Method)) +
-    geom_point(aes(shape = Method), size = 2.5, position = position_dodge(width = 0.6)) +
-    geom_errorbar(aes(ymin = q2.5_alpha, ymax = q97.5_alpha, group = Method),
+  p <- ggplot(combined, aes(x = factor(parameter), y = mean_alpha,
+                            group = Method, colour = Method)) +
+    geom_point(aes(shape = Method), size = 2.5,
+               position = position_dodge(width = 0.6)) +
+    geom_errorbar(aes(ymin = q2.5_alpha, ymax = q97.5_alpha),
                   width = 0.6, position = position_dodge(width = 0.6)) +
     geom_hline(yintercept = 0, linetype = "dotted") +
     geom_vline(xintercept = c(4.5, 8.5), linetype = "dashed") +
     ggtitle(plot_titles[i]) +
-    labs(x = "", y = "") + ylim(c(-2.2,2.2)) +
+    labs(x = "", y = "") +
+    ylim(c(-2.2, 2.2)) +
     scale_color_brewer(palette = "Dark2") +
     annotate("text", x = 2.5, y = -2, label = "hat(alpha)[A]", parse = TRUE, size = 7) +
     annotate("text", x = 6.5, y = -2, label = "hat(alpha)[B]", parse = TRUE, size = 7) +
@@ -46,29 +52,58 @@ for (i in 1:length(MCMC_results)){
       axis.ticks.x = element_blank(),
       panel.background = element_blank(),
       axis.line = element_line(color = "black"),
-      axis.title = element_text(size = 12, face = "bold"),
-      axis.text.y = element_text(size = 12, face = "bold"),
+      axis.title = element_text(size = 14, face = "bold"),
+      axis.text.y = element_text(size = 14, face = "bold"),
       plot.title = element_text(size = 16),
-      legend.position = c(0, 1),       
-      legend.justification = c(0, 1), 
-      legend.text = element_text(size = 11),
-      legend.title = element_text(size = 14),
+      legend.position = "bottom",
+      legend.direction = "horizontal",
+      legend.text = element_text(size = 14),
+      legend.title = element_text(size = 16),
       legend.background = element_rect(fill = "transparent", colour = NA),
       legend.box.background = element_rect(fill = "transparent", colour = NA)
     )
   
-  # Assign a name for gridExtra
-  assign(paste0("p",i), p)
-  
+  plot_list[[i]] <- p
 }
 
-grid.arrange(p1, p2, p3, p4, ncol=2, nrow=2,
-             top = textGrob("Group-Level Posterior Mean Estimates and 95% HPD Intervals",
-                            gp = gpar(fontface = "bold", fontsize = 16)),
-             bottom = textGrob("Parameter",
-                               gp = gpar(fontface = "bold", fontsize = 14)),
-             left = textGrob("Group-Level Posterior Mean Estimate",
-                             gp = gpar(fontface = "bold", fontsize = 14), rot = 90))
+# Function to extract legend from a ggplot object
+get_legend <- function(myplot) {
+  plot_grob <- ggplotGrob(myplot)
+  legend_index <- which(sapply(plot_grob$grobs, function(x) x$name) == "guide-box")
+  plot_grob$grobs[[legend_index]]
+}
+
+# Extract legend from first plot
+shared_legend <- get_legend(plot_list[[1]])
+
+# Remove legends from all plots
+plot_list_nolegend <- lapply(plot_list, function(p) {
+  p + theme(legend.position = "none")
+})
+
+# Arrange the 4 plots
+plots_grid <- arrangeGrob(
+  grobs = plot_list_nolegend,
+  ncol = 2,
+  nrow = 2,
+  top = textGrob("Group-Level Posterior Mean Estimates and 95% HPD Intervals",
+                 gp = gpar(fontface = "bold", fontsize = 16)),
+  bottom = textGrob("Parameter",
+                    gp = gpar(fontface = "bold", fontsize = 15)),
+  left = textGrob("Group-Level Posterior Mean Estimate",
+                  gp = gpar(fontface = "bold", fontsize = 15), rot = 90)
+)
+
+# Stack plots + shared legend
+final_plot <- arrangeGrob(
+  plots_grid,
+  shared_legend,
+  ncol = 1,
+  heights = c(10, 1)
+)
+
+grid.newpage()
+grid.draw(final_plot)
 
 
 ###################################################################
