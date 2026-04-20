@@ -10,6 +10,7 @@ if(length(args)==0){
 }
 
 suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(cdcm))
 
 # Load in simulated data
 load("Data/dat_simple_mdl_diag_var.RData")
@@ -22,20 +23,17 @@ idxs = list(A_idxs = matrix(c(2,1,
             B_idxs = matrix(c(2,1,2), byrow=T, ncol = 3),
             C_idxs = matrix(c(1,1), byrow=T, ncol=2))
 
-# Source functions from parent directory
-source("../canonical_dcm_functions.R")
-
 # Put data into form for sampler
 stan_dat <- get_stan_dat(dat, idxs, ode_solver_type = 0)
 
-# Compile stan program from parent directory
-canonical_dcm = cmdstanr::cmdstan_model("../canonical_dcm.stan")
+# Compile model
+mod <- compile_cdcm()
 
 # Use pathfinder to get good initial values
-inits_list <- get_initial_vals(canonical_dcm, stan_dat)
+inits_list <- get_initial_vals(mod, stan_dat)
 
 # Running stan program to sample from posterior
-fit = canonical_dcm$sample(
+fit = mod$sample(
   data = stan_dat,
   init = list(inits_list), 
   refresh = 20, # output frequency
@@ -45,7 +43,7 @@ fit = canonical_dcm$sample(
   chains = 1,
   adapt_delta = 0.9,
   save_warmup = TRUE, 
-  metric = "dense_e") 
+  metric = "dense_e")
 
 # Draws in output csv
 fit$save_output_files(dir = "/storage/work/krf5429/Canonical-DCM-Method/Computational_Efficiency_Sim/Output",
