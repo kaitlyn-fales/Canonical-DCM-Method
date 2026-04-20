@@ -2,6 +2,8 @@ library(posterior)
 library(grid)
 library(gridExtra)
 library(gtable)
+library(dplyr)
+library(ggplot2)
 
 get_legend <- function(myplot) {
   plot_grob <- ggplotGrob(myplot)

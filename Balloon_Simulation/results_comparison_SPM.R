@@ -1,6 +1,9 @@
 library(grid)
 library(gridExtra)
 library(R.matlab)
+library(gtable)
+library(dplyr)
+library(ggplot2)
 
 ############ Functions ##############
 # Unstructure params function
@@ -144,7 +147,7 @@ p1 <- ggplot() +
   geom_vline(xintercept = 5.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A") +
   labs(x = "", y = "", shape = "", color = "") +
-  ylim(c(-1.1, 1.5)) +
+  ylim(c(-1.2, 2.2)) +
   annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
   annotate("text", x = 5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
   annotate("text", x = 6, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
@@ -272,7 +275,7 @@ p2 <- ggplot() +
   geom_vline(xintercept = 6.5, linetype = "dashed") +
   ggtitle("Diagonal Parameters in A and B") +
   labs(x = "", y = "", shape = "", color = "") +
-  ylim(c(-1.1, 1.5)) +
+  ylim(c(-1.2, 2.2)) +
   annotate("text", x = 2.5, y = -1, label = "nu[A]", parse = TRUE, size = 8) +
   annotate("text", x = 5.5, y = -1, label = "nu[B]", parse = TRUE, size = 8) +
   annotate("text", x = 7, y = -1, label = "nu[C]", parse = TRUE, size = 8) +
