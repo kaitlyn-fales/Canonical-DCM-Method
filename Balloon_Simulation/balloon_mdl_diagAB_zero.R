@@ -34,7 +34,7 @@ idxs = list(A_idxs = matrix(c(2,1,
 stan_dat <- get_stan_dat(dat, idxs)
 
 # Convergence criterion - Multivariate ESS (95% HPD, 5% tolerance)
-minESS_check <- minESS_criterion(stan_dat, alpha = 0.05, eps = 0.05)
+ess_check <- minESS_criterion(stan_dat, alpha = 0.05, eps = 0.05)
 
 # Compile stan program
 canonical_dcm <- compile_cdcm()
