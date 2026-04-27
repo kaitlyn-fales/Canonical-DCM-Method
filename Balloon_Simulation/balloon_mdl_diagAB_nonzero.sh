@@ -5,8 +5,8 @@
 #SBATCH --mem-per-cpu=4gb
 #SBATCH --time=24:00:00
 #SBATCH --account=statsresearch_sc_default
-#SBATCH --output=Output/balloon_mdl_diagAB_nonzero_%a.out
-#SBATCH --array=1-5
+#SBATCH --output=Output/balloon_mdl_diagAB_nonzero_rep%03a.out
+#SBATCH --array=1-50
 
 # Get started
 echo " "
