@@ -1,25 +1,25 @@
-remove(list=ls())
+remove(list = ls())
 
-args=(commandArgs(TRUE))
-if(length(args)==0){
-  print("No arguments supplied.")
-}else{
-  for(i in 1:length(args)){
-    eval(parse(text=args[[i]]))
+args <- commandArgs(TRUE)
+if (length(args) == 0) {
+  stop("No arguments supplied.")
+} else {
+  for (i in seq_along(args)) {
+    eval(parse(text = args[[i]]))
   }
 }
 
-suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(mcmcse))
-suppressPackageStartupMessages(library(momentLS))
 suppressPackageStartupMessages(library(cdcm))
 
-# Load in simulated data
-load("Data/balloon_sim_data_diagAB_nonzero.RData")
+# index = simulation replicate
+rep_id <- index
+
+# Load simulated data
+load(sprintf("Data/balloon_sim_diagAB_nonzero_data_rep%03d.RData", rep_id))
 
 # Output specs
 output_dir <- "Output"
-basename <- paste0("balloon_diagAB_nonzero_",index)
+basename <- sprintf("balloon_mdl_diagAB_nonzero_rep%03d", rep_id)
 
 # Set up hypotheses
 idxs = list(A_idxs = matrix(c(2,1,
@@ -43,10 +43,14 @@ canonical_dcm <- compile_cdcm()
 inits_list <- get_initial_vals(canonical_dcm, stan_dat)
 
 # Run sampler until convergence
-results <- dcm_sample(mod = canonical_dcm, 
-                      data = stan_dat, 
-                      inits_list = inits_list, 
-                      output_dir = output_dir,
-                      basename = basename,
-                      ess_check = ess_check,
-                      seed = index)                   
+mcmc_seed <- 200000 + rep_id
+results <- dcm_sample(
+  mod = canonical_dcm,
+  data = stan_dat,
+  inits_list = inits_list,
+  output_dir = output_dir,
+  basename = basename,
+  ess_check = ess_check,
+  seed = mcmc_seed
+)
+
