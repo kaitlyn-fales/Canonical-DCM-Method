@@ -12,8 +12,11 @@ if(length(args)==0){
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(cdcm))
 
+# index = simulation replicate
+rep_id <- index
+
 # Load in simulated data
-load("Data/dat_simple_mdl_diag_var.RData")
+load(sprintf("Data/dat_simple_mdl_diag_var_rep%03d.RData", rep_id))
 
 # Set up hypotheses
 idxs = list(A_idxs = matrix(c(2,1,
@@ -33,13 +36,14 @@ mod <- compile_cdcm()
 inits_list <- get_initial_vals(mod, stan_dat)
 
 # Running stan program to sample from posterior
+mcmc_seed <- 200000 + rep_id
 fit = mod$sample(
   data = stan_dat,
   init = list(inits_list), 
   refresh = 20, # output frequency
   iter_warmup = 5000, # warm-up iterations
   iter_sampling = 3000, # sampling iterations
-  seed = index, # seed for reproducibility
+  seed = mcmc_seed, # seed for reproducibility
   chains = 1,
   adapt_delta = 0.9,
   save_warmup = TRUE, 
@@ -47,4 +51,6 @@ fit = mod$sample(
 
 # Draws in output csv
 fit$save_output_files(dir = "/storage/work/krf5429/Canonical-DCM-Method/Computational_Efficiency_Sim/Output",
-                      basename = paste0("simple_mdl_ckrk_diag_var_",index), timestamp = F, random = F)
+                      basename = sprintf("simple_mdl_ckrk_diag_var_rep%03d", rep_id), 
+                      timestamp = F, 
+                      random = F)
