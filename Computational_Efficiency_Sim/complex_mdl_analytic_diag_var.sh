@@ -4,9 +4,9 @@
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=4gb
 #SBATCH --time=48:00:00
-#SBATCH --account=statsresearch_sc_default
+#SBATCH --account=open
 #SBATCH --output=Output/complex_mdl_analytic_diag_var_%a.out
-#SBATCH --array=1-5
+#SBATCH --array=1-50
 
 # Get started
 echo " "
