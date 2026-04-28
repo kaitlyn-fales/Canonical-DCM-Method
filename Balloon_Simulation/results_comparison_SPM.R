@@ -44,6 +44,132 @@ get_legend <- function(myplot) {
   legend_index <- which(sapply(plot_grob$grobs, function(x) x$name) == "guide-box")
   plot_grob$grobs[[legend_index]]
 }
+
+diagA_reparam <- function(result){
+  # Inputs - vectorize
+  mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
+  Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+  
+  # Indices of the params to be transformed
+  idx_A <- c(1,4) 
+  
+  # simulation settings
+  S <- 20000
+  set.seed(1234)
+  
+  # Simulate draws
+  draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
+  
+  # Transform the specified components
+  draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+  
+  # Compute empirical mean and covariance on transformed scale
+  mu_emp  <- colMeans(draws)     
+  Sigma_emp <- cov(draws)   
+  
+  # Add in transformed diagonal back to original estimate
+  diag(result$Ep.A) <- mu_emp[idx_A]
+  diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
+  
+  # Indices of parameters
+  idxs = list(A_idxs = matrix(c(2,1,
+                                1,2,
+                                1,1,
+                                2,2), byrow = T, ncol=2),
+              B_idxs = matrix(c(2,1,2), byrow=T, ncol = 3),
+              C_idxs = matrix(c(1,1), byrow=T, ncol=2))
+  
+  # Posterior means
+  means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
+  
+  # Grab posterior means
+  means$B <- list(means$B[,,1],means$B[,,2])
+  
+  # All posterior variances coming from A, B, C (hemodynamic params are last 4)
+  Cp <- diag(result$Cp)
+  Cp <- Cp[1:(length(Cp)-4)]
+  
+  # Get rid of nonzero entries - correspond to placeholders not est in A, B, C
+  Cp <- Cp[Cp != 0]
+  
+  # Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
+  # Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), C(1,1)
+  vars <- Cp[c(2,3,1,4,5,6)]
+  
+  # Unstructure means
+  mu <- unstruct_paramMats(means,idxs)
+  
+  # Get results
+  summary <- get_summary(mu,vars)
+  
+  return(summary)
+}
+
+diagAB_reparam <- function(result){
+  # Inputs - vectorize
+  mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
+  Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+  
+  # Indices of the params to be transformed
+  idx_A <- c(1,4) 
+  idx_B <- 12
+  
+  # simulation settings
+  S <- 20000
+  set.seed(1234)
+  
+  # Simulate draws
+  draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
+  
+  # Transform the specified components
+  draws[,idx_A] <- -0.5*exp(draws[,idx_A])
+  draws[,idx_B] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B]-1)
+  
+  # Compute empirical mean and covariance on transformed scale
+  mu_emp  <- colMeans(draws)     
+  Sigma_emp <- cov(draws)   
+  
+  # Add in transformed diagonal back to original estimate
+  diag(result$Ep.A) <- mu_emp[idx_A]
+  diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
+  
+  result$Ep.B[2,2,2] <- mu_emp[idx_B]
+  diag(result$Cp)[idx_B] <- diag(Sigma_emp)[idx_B]
+  
+  # Indices of parameters
+  idxs = list(A_idxs = matrix(c(2,1,
+                                1,2,
+                                1,1,
+                                2,2), byrow = T, ncol=2),
+              B_idxs = matrix(c(2,1,2,
+                                2,2,2), byrow=T, ncol = 3),
+              C_idxs = matrix(c(1,1), byrow=T, ncol=2))
+  
+  # Posterior means
+  means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
+  
+  # Grab posterior means
+  means$B <- list(means$B[,,1],means$B[,,2])
+  
+  # All posterior variances coming from A, B, C (hemodynamic params are last 4)
+  Cp <- diag(result$Cp)
+  Cp <- Cp[1:(length(Cp)-4)]
+  
+  # Get rid of nonzero entries - correspond to placeholders not est in A, B, C
+  Cp <- Cp[Cp != 0]
+  
+  # Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
+  # Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), B(2,2,2), C(1,1)
+  vars <- Cp[c(2,3,1,4,5,6,7)]
+  
+  # Unstructure means
+  mu <- unstruct_paramMats(means,idxs)
+  
+  # Get results
+  summary <- get_summary(mu,vars)
+  
+  return(summary)
+}
 #####################################
 
 #################### Canonical data generating model ###########################
@@ -54,68 +180,20 @@ nu = truth
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/canonical_diagA_out.mat"))
 
-# Inputs - vectorize
-mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
-Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+coverage_nu <- numeric()
+length_nu <- numeric()
 
-# Indices of the params to be transformed
-idx_A <- c(1,4) 
+for (k in 1:50){
+  result <- readMat(sprintf("Balloon_Simulation/Output/canonical_diagA_rep%03d_out.mat", k))
 
-# simulation settings
-S <- 20000
-set.seed(1234)
+  summary <- diagA_reparam(result)
+  coverage_nu[k] <- mean(summary$coverage)
+  length_nu[k] <- mean(summary$length)
+}
 
-# Simulate draws
-draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
-
-# Transform the specified components
-draws[,idx_A] <- -0.5*exp(draws[,idx_A])
-
-# Compute empirical mean and covariance on transformed scale
-mu_emp  <- colMeans(draws)     
-Sigma_emp <- cov(draws)   
-
-# Add in transformed diagonal back to original estimate
-diag(result$Ep.A) <- mu_emp[idx_A]
-diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
-
-# Indices of parameters
-idxs = list(A_idxs = matrix(c(2,1,
-                              1,2,
-                              1,1,
-                              2,2), byrow = T, ncol=2),
-            B_idxs = matrix(c(2,1,2), byrow=T, ncol = 3),
-            C_idxs = matrix(c(1,1), byrow=T, ncol=2))
-
-# Posterior means
-means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
-
-# Grab posterior means
-means$B <- list(means$B[,,1],means$B[,,2])
-
-# All posterior variances coming from A, B, C (hemodynamic params are last 4)
-Cp <- diag(result$Cp)
-Cp <- Cp[1:(length(Cp)-4)]
-
-# Get rid of nonzero entries - correspond to placeholders not est in A, B, C
-Cp <- Cp[Cp != 0]
-
-# Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), C(1,1)
-vars <- Cp[c(2,3,1,4,5,6)]
-
-# Unstructure means
-mu <- unstruct_paramMats(means,idxs)
-
-# Get results
-summary <- get_summary(mu,vars)
-
-coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
-                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
-                                     mean_length_nu = mean(summary$length),
-                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+coverage_length_result <- data.frame(coverage = mean(coverage_nu),
+                                     length = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Make df for plotting
@@ -167,83 +245,29 @@ p1 <- ggplot() +
   )
 
 ############################################################################
-rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats","get_legend")))
+rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats","get_legend","diagA_reparam","diagAB_reparam")))
 
 # Simple model with diag A and diag B est
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.05,0.7)
 nu = truth
 
-# Diagonal of A estimated
+# Diagonal of AB estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/canonical_diagAB_out.mat"))
 
-# Inputs - vectorize
-mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
-Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+coverage_nu <- numeric()
+length_nu <- numeric()
 
-# Indices of the params to be transformed
-idx_A <- c(1,4) 
-idx_B <- 12
+for (k in 1:50){
+  result <- readMat(sprintf("Balloon_Simulation/Output/canonical_diagAB_rep%03d_out.mat", k))
+  
+  summary <- diagAB_reparam(result)
+  coverage_nu[k] <- mean(summary$coverage)
+  length_nu[k] <- mean(summary$length)
+}
 
-# simulation settings
-S <- 20000
-set.seed(1234)
-
-# Simulate draws
-draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
-
-# Transform the specified components
-draws[,idx_A] <- -0.5*exp(draws[,idx_A])
-draws[,idx_B] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B]-1)
-
-# Compute empirical mean and covariance on transformed scale
-mu_emp  <- colMeans(draws)     
-Sigma_emp <- cov(draws)   
-
-# Add in transformed diagonal back to original estimate
-diag(result$Ep.A) <- mu_emp[idx_A]
-diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
-
-result$Ep.B[2,2,2] <- mu_emp[idx_B]
-diag(result$Cp)[idx_B] <- diag(Sigma_emp)[idx_B]
-
-# Indices of parameters
-idxs = list(A_idxs = matrix(c(2,1,
-                              1,2,
-                              1,1,
-                              2,2), byrow = T, ncol=2),
-            B_idxs = matrix(c(2,1,2,
-                              2,2,2), byrow=T, ncol = 3),
-            C_idxs = matrix(c(1,1), byrow=T, ncol=2))
-
-# Posterior means
-means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
-
-# Grab posterior means
-means$B <- list(means$B[,,1],means$B[,,2])
-
-# All posterior variances coming from A, B, C (hemodynamic params are last 4)
-Cp <- diag(result$Cp)
-Cp <- Cp[1:(length(Cp)-4)]
-
-# Get rid of nonzero entries - correspond to placeholders not est in A, B, C
-Cp <- Cp[Cp != 0]
-
-# Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), B(2,2,2), C(1,1)
-vars <- Cp[c(2,3,1,4,5,6,7)]
-
-# Unstructure means
-mu <- unstruct_paramMats(means,idxs)
-
-# Get results
-summary <- get_summary(mu,vars)
-
-coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
-                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
-                                     mean_length_nu = mean(summary$length),
-                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+coverage_length_result <- data.frame(coverage = mean(coverage_nu),
+                                     length = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Make df for plotting
@@ -311,7 +335,7 @@ plots_grid <- arrangeGrob(
                  gp = gpar(fontface = "bold", fontsize = 16)),
   bottom = textGrob("Parameter",
                     gp = gpar(fontface = "bold", fontsize = 14)),
-  left = textGrob("Posterior Mean Estimate",
+  left = textGrob("Average Posterior Mean Estimate",
                   gp = gpar(fontface = "bold", fontsize = 14), rot = 90)
 )
 
@@ -327,7 +351,7 @@ grid.draw(final_plot)
 
 ################################################################################
 
-rm(list = setdiff(ls(), c("get_summary","unstruct_paramMats","get_legend")))
+rm(list = setdiff(ls(), c("get_summary","unstruct_paramMats","get_legend","diagA_reparam","diagAB_reparam")))
 
 #################### Balloon data generating model ###########################
 # Simple model with diag A est
@@ -337,68 +361,20 @@ nu = truth
 # Diagonal of A estimated - zero delays
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/balloon_diagA_zero_out.mat"))
 
-# Inputs - vectorize
-mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
-Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+coverage_nu <- numeric()
+length_nu <- numeric()
 
-# Indices of the params to be transformed
-idx_A <- c(1,4) 
+for (k in 1:50){
+  result <- readMat(sprintf("Balloon_Simulation/Output/balloon_diagA_zero_rep%03d_out.mat", k))
+  
+  summary <- diagA_reparam(result)
+  coverage_nu[k] <- mean(summary$coverage)
+  length_nu[k] <- mean(summary$length)
+}
 
-# simulation settings
-S <- 20000
-set.seed(1234)
-
-# Simulate draws
-draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
-
-# Transform the specified components
-draws[,idx_A] <- -0.5*exp(draws[,idx_A])
-
-# Compute empirical mean and covariance on transformed scale
-mu_emp  <- colMeans(draws)     
-Sigma_emp <- cov(draws)   
-
-# Add in transformed diagonal back to original estimate
-diag(result$Ep.A) <- mu_emp[idx_A]
-diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
-
-# Indices of parameters
-idxs = list(A_idxs = matrix(c(2,1,
-                              1,2,
-                              1,1,
-                              2,2), byrow = T, ncol=2),
-            B_idxs = matrix(c(2,1,2), byrow=T, ncol = 3),
-            C_idxs = matrix(c(1,1), byrow=T, ncol=2))
-
-# Posterior means
-means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
-
-# Grab posterior means
-means$B <- list(means$B[,,1],means$B[,,2])
-
-# All posterior variances coming from A, B, C (hemodynamic params are last 4)
-Cp <- diag(result$Cp)
-Cp <- Cp[1:(length(Cp)-4)]
-
-# Get rid of nonzero entries - correspond to placeholders not est in A, B, C
-Cp <- Cp[Cp != 0]
-
-# Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), C(1,1)
-vars <- Cp[c(2,3,1,4,5,6)]
-
-# Unstructure means
-mu <- unstruct_paramMats(means,idxs)
-
-# Get results
-summary <- get_summary(mu,vars)
-
-coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
-                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
-                                     mean_length_nu = mean(summary$length),
-                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+coverage_length_result <- data.frame(coverage = mean(coverage_nu),
+                                     length = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 x <- seq_len(nrow(summary))
@@ -449,83 +425,29 @@ p1 <- ggplot() +
   )
 
 ############################################################################
-rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats","get_legend")))
+rm(list = setdiff(ls(), c("p1","get_summary","unstruct_paramMats","get_legend","diagA_reparam","diagAB_reparam")))
 
 # Simple model with diag A and diag B est, zero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7)
 nu = truth
 
-# Diagonal of A estimated
+# Diagonal of A and B estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/balloon_diagAB_zero_out.mat"))
 
-# Inputs - vectorize
-mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
-Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+coverage_nu <- numeric()
+length_nu <- numeric()
 
-# Indices of the params to be transformed
-idx_A <- c(1,4) 
-idx_B <- 12
+for (k in 1:50){
+  result <- readMat(sprintf("Balloon_Simulation/Output/balloon_diagAB_zero_rep%03d_out.mat", k))
+  
+  summary <- diagAB_reparam(result)
+  coverage_nu[k] <- mean(summary$coverage)
+  length_nu[k] <- mean(summary$length)
+}
 
-# simulation settings
-S <- 20000
-set.seed(1234)
-
-# Simulate draws
-draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
-
-# Transform the specified components
-draws[,idx_A] <- -0.5*exp(draws[,idx_A])
-draws[,idx_B] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B]-1)
-
-# Compute empirical mean and covariance on transformed scale
-mu_emp  <- colMeans(draws)     
-Sigma_emp <- cov(draws)   
-
-# Add in transformed diagonal back to original estimate
-diag(result$Ep.A) <- mu_emp[idx_A]
-diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
-
-result$Ep.B[2,2,2] <- mu_emp[idx_B]
-diag(result$Cp)[idx_B] <- diag(Sigma_emp)[idx_B]
-
-# Indices of parameters
-idxs = list(A_idxs = matrix(c(2,1,
-                              1,2,
-                              1,1,
-                              2,2), byrow = T, ncol=2),
-            B_idxs = matrix(c(2,1,2,
-                              2,2,2), byrow=T, ncol = 3),
-            C_idxs = matrix(c(1,1), byrow=T, ncol=2))
-
-# Posterior means
-means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
-
-# Grab posterior means
-means$B <- list(means$B[,,1],means$B[,,2])
-
-# All posterior variances coming from A, B, C (hemodynamic params are last 4)
-Cp <- diag(result$Cp)
-Cp <- Cp[1:(length(Cp)-4)]
-
-# Get rid of nonzero entries - correspond to placeholders not est in A, B, C
-Cp <- Cp[Cp != 0]
-
-# Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), B(2,2,2), C(1,1)
-vars <- Cp[c(2,3,1,4,5,6,7)]
-
-# Unstructure means
-mu <- unstruct_paramMats(means,idxs)
-
-# Get results
-summary <- get_summary(mu,vars)
-
-coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
-                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
-                                     mean_length_nu = mean(summary$length),
-                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+coverage_length_result <- data.frame(coverage = mean(coverage_nu),
+                                     length = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 x <- seq_len(nrow(summary))
@@ -577,77 +499,29 @@ p2 <- ggplot() +
              
 ################################################################################
 
-rm(list = setdiff(ls(), c("p1","p2","get_summary","unstruct_paramMats","get_legend")))
+rm(list = setdiff(ls(), c("p1","p2","get_summary","unstruct_paramMats","get_legend","diagA_reparam","diagAB_reparam")))
 
 # Simple model with diag A est
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,0.7)
 nu = truth
 
-# Diagonal of A estimated - zero delays
+# Diagonal of A estimated - 1s delays
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/balloon_diagA_nonzero_out.mat"))
 
-# Inputs - vectorize
-mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
-Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+coverage_nu <- numeric()
+length_nu <- numeric()
 
-# Indices of the params to be transformed
-idx_A <- c(1,4) 
+for (k in 1:50){
+  result <- readMat(sprintf("Balloon_Simulation/Output/balloon_diagA_nonzero_rep%03d_out.mat", k))
+  
+  summary <- diagA_reparam(result)
+  coverage_nu[k] <- mean(summary$coverage)
+  length_nu[k] <- mean(summary$length)
+}
 
-# simulation settings
-S <- 20000
-set.seed(1234)
-
-# Simulate draws
-draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
-
-# Transform the specified components
-draws[,idx_A] <- -0.5*exp(draws[,idx_A])
-
-# Compute empirical mean and covariance on transformed scale
-mu_emp  <- colMeans(draws)     
-Sigma_emp <- cov(draws)   
-
-# Add in transformed diagonal back to original estimate
-diag(result$Ep.A) <- mu_emp[idx_A]
-diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
-
-# Indices of parameters
-idxs = list(A_idxs = matrix(c(2,1,
-                              1,2,
-                              1,1,
-                              2,2), byrow = T, ncol=2),
-            B_idxs = matrix(c(2,1,2), byrow=T, ncol = 3),
-            C_idxs = matrix(c(1,1), byrow=T, ncol=2))
-
-# Posterior means
-means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
-
-# Grab posterior means
-means$B <- list(means$B[,,1],means$B[,,2])
-
-# All posterior variances coming from A, B, C (hemodynamic params are last 4)
-Cp <- diag(result$Cp)
-Cp <- Cp[1:(length(Cp)-4)]
-
-# Get rid of nonzero entries - correspond to placeholders not est in A, B, C
-Cp <- Cp[Cp != 0]
-
-# Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), C(1,1)
-vars <- Cp[c(2,3,1,4,5,6)]
-
-# Unstructure means
-mu <- unstruct_paramMats(means,idxs)
-
-# Get results
-summary <- get_summary(mu,vars)
-
-coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
-                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
-                                     mean_length_nu = mean(summary$length),
-                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+coverage_length_result <- data.frame(coverage = mean(coverage_nu),
+                                     length = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 x <- seq_len(nrow(summary))
@@ -699,7 +573,7 @@ p3 <- ggplot() +
 
 ################################################################################
 
-rm(list = setdiff(ls(), c("p1","p2","p3","get_summary","unstruct_paramMats","get_legend")))
+rm(list = setdiff(ls(), c("p1","p2","p3","get_summary","unstruct_paramMats","get_legend","diagA_reparam","diagAB_reparam")))
 
 # Simple model with diag A and diag B est, nonzero delays
 truth <- c(0.4,0.3,-0.5*exp(-0.1),-0.5*exp(0.15),-0.2,-0.5*-0.5*exp(0.15)*exp(0.05-1),0.7)
@@ -708,74 +582,20 @@ nu = truth
 # Diagonal of A estimated
 # Load in file
 path = paste0(getwd(),"/Balloon_Simulation/Output")
-result <- readMat(paste0(path,"/balloon_diagAB_nonzero_out.mat"))
 
-# Inputs - vectorize
-mu    <- c(result$Ep.A, result$Ep.B, result$Ep.C)
-Sigma <- result$Cp[-c(17:20),-c(17:20)] 
+coverage_nu <- numeric()
+length_nu <- numeric()
 
-# Indices of the params to be transformed
-idx_A <- c(1,4) 
-idx_B <- 12
+for (k in 1:50){
+  result <- readMat(sprintf("Balloon_Simulation/Output/balloon_diagAB_nonzero_rep%03d_out.mat", k))
+  
+  summary <- diagAB_reparam(result)
+  coverage_nu[k] <- mean(summary$coverage)
+  length_nu[k] <- mean(summary$length)
+}
 
-# simulation settings
-S <- 20000
-set.seed(1234)
-
-# Simulate draws
-draws <- MASS::mvrnorm(n = S, mu = mu, Sigma = Sigma)
-
-# Transform the specified components
-draws[,idx_A] <- -0.5*exp(draws[,idx_A])
-draws[,idx_B] <- -0.5*draws[,idx_A[2]]*exp(draws[,idx_B]-1)
-
-# Compute empirical mean and covariance on transformed scale
-mu_emp  <- colMeans(draws)     
-Sigma_emp <- cov(draws)   
-
-# Add in transformed diagonal back to original estimate
-diag(result$Ep.A) <- mu_emp[idx_A]
-diag(result$Cp)[idx_A] <- diag(Sigma_emp)[idx_A]
-
-result$Ep.B[2,2,2] <- mu_emp[idx_B]
-diag(result$Cp)[idx_B] <- diag(Sigma_emp)[idx_B]
-
-# Indices of parameters
-idxs = list(A_idxs = matrix(c(2,1,
-                              1,2,
-                              1,1,
-                              2,2), byrow = T, ncol=2),
-            B_idxs = matrix(c(2,1,2,
-                              2,2,2), byrow=T, ncol = 3),
-            C_idxs = matrix(c(1,1), byrow=T, ncol=2))
-
-# Posterior means
-means <- list(A = result$Ep.A, B = result$Ep.B, C = result$Ep.C)
-
-# Grab posterior means
-means$B <- list(means$B[,,1],means$B[,,2])
-
-# All posterior variances coming from A, B, C (hemodynamic params are last 4)
-Cp <- diag(result$Cp)
-Cp <- Cp[1:(length(Cp)-4)]
-
-# Get rid of nonzero entries - correspond to placeholders not est in A, B, C
-Cp <- Cp[Cp != 0]
-
-# Update ordering of post var to match that of nu - current order is column-major order of vec(A,B,C) matrices
-# Column-major order is (1,1), (2,1), (1,2), (2,2), B(2,1,2), B(2,2,2), C(1,1)
-vars <- Cp[c(2,3,1,4,5,6,7)]
-
-# Unstructure means
-mu <- unstruct_paramMats(means,idxs)
-
-# Get results
-summary <- get_summary(mu,vars)
-
-coverage_length_result <- data.frame(mean_coverage_nu = mean(summary$coverage),
-                                     se_coverage_nu = sd(summary$coverage)/sqrt(length(mu)),
-                                     mean_length_nu = mean(summary$length),
-                                     se_length_nu = sd(summary$length)/sqrt(length(mu)))
+coverage_length_result <- data.frame(coverage = mean(coverage_nu),
+                                     length = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 x <- seq_len(nrow(summary))

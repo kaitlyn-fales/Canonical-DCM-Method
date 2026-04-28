@@ -226,7 +226,7 @@ nu = truth
 temp = list.files(path = path, 
                   pattern="\\.csv$")
 
-# Complex analytic diag fix
+# Complex analytic diag
 temp <- temp[grepl("^complex_mdl_analytic_diag_var", temp)]
 
 files <- character()
