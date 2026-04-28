@@ -24,7 +24,8 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][16:20]
+temp <- temp[grepl("balloon_mdl_diagA_zero", temp)]
+temp <- temp[grepl("draws", temp)]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -33,12 +34,8 @@ for (i in 1:length(temp)){
 
 # Empty vectors and lists to store results
 coverage_nu <- numeric()
-coverage <- numeric()
 length_nu <- numeric()
-length <- numeric()
 param_summaries <- list()
-se_coverage <- numeric()
-se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -55,26 +52,20 @@ for (i in 1:length(files)){
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
-  coverage[i] <- mean(summary$coverage)
-  se_coverage[i] <- sd(summary$coverage[1:6])/sqrt(6)
   
   # Length
   length_nu[i] <- mean(summary$length[1:6])
-  length[i] <- mean(summary$length)
-  se_length[i] <- sd(summary$length[1:6])/sqrt(6)
   
   # Export post. means 
   post_means <- summary[,1:2]
-  save(post_means, file = paste0(path,"/balloon_post_means_diagA_zero_",i,".RData"))
-  
+  save(post_means, file = sprintf("%s/balloon_post_means_diagA_zero_rep%03d.RData", path, i))
+
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = mean(se_coverage),
-                                     mean_length_nu = mean(length_nu),
-                                     se_length_nu = mean(se_length))
+                                     mean_length_nu = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -155,7 +146,8 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][6:10]
+temp <- temp[grepl("balloon_mdl_diagAB_zero", temp)]
+temp <- temp[grepl("draws", temp)]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -164,12 +156,8 @@ for (i in 1:length(temp)){
 
 # Empty vectors and lists to store results
 coverage_nu <- numeric()
-coverage <- numeric()
 length_nu <- numeric()
-length <- numeric()
 param_summaries <- list()
-se_coverage <- numeric()
-se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -186,26 +174,20 @@ for (i in 1:length(files)){
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
-  coverage[i] <- mean(summary$coverage)
-  se_coverage[i] <- sd(summary$coverage[1:7])/sqrt(7)
   
   # Length
   length_nu[i] <- mean(summary$length[1:7])
-  length[i] <- mean(summary$length)
-  se_length[i] <- sd(summary$length[1:7])/sqrt(7)
   
   # Export post. means 
   post_means <- summary[,1:2]
-  save(post_means, file = paste0(path,"/balloon_post_means_diagAB_zero_",i,".RData"))
+  save(post_means, file = sprintf("%s/balloon_post_means_diagAB_zero_rep%03d.RData", path, i))
   
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = mean(se_coverage),
-                                     mean_length_nu = mean(length_nu),
-                                     se_length_nu = mean(se_length))
+                                     mean_length_nu = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -286,7 +268,8 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][11:15]
+temp <- temp[grepl("balloon_mdl_diagA_nonzero", temp)]
+temp <- temp[grepl("draws", temp)]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -295,12 +278,8 @@ for (i in 1:length(temp)){
 
 # Empty vectors and lists to store results
 coverage_nu <- numeric()
-coverage <- numeric()
 length_nu <- numeric()
-length <- numeric()
 param_summaries <- list()
-se_coverage <- numeric()
-se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -317,26 +296,20 @@ for (i in 1:length(files)){
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
-  coverage[i] <- mean(summary$coverage)
-  se_coverage[i] <- sd(summary$coverage[1:6])/sqrt(6)
   
   # Length
   length_nu[i] <- mean(summary$length[1:6])
-  length[i] <- mean(summary$length)
-  se_length[i] <- sd(summary$length[1:6])/sqrt(6)
   
   # Export post. means 
   post_means <- summary[,1:2]
-  save(post_means, file = paste0(path,"/balloon_post_means_diagA_nonzero_",i,".RData"))
+  save(post_means, file = sprintf("%s/balloon_post_means_diagA_nonzero_rep%03d.RData", path, i))
   
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = mean(se_coverage),
-                                     mean_length_nu = mean(length_nu),
-                                     se_length_nu = mean(se_length))
+                                     mean_length_nu = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -417,7 +390,8 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][1:5]
+temp <- temp[grepl("balloon_mdl_diagAB_nonzero", temp)]
+temp <- temp[grepl("draws", temp)]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -426,12 +400,8 @@ for (i in 1:length(temp)){
 
 # Empty vectors and lists to store results
 coverage_nu <- numeric()
-coverage <- numeric()
 length_nu <- numeric()
-length <- numeric()
 param_summaries <- list()
-se_coverage <- numeric()
-se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -448,26 +418,20 @@ for (i in 1:length(files)){
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
-  coverage[i] <- mean(summary$coverage)
-  se_coverage[i] <- sd(summary$coverage[1:7])/sqrt(7)
   
   # Length
   length_nu[i] <- mean(summary$length[1:7])
-  length[i] <- mean(summary$length)
-  se_length[i] <- sd(summary$length[1:7])/sqrt(7)
   
   # Export post. means 
   post_means <- summary[,1:2]
-  save(post_means, file = paste0(path,"/balloon_post_means_diagAB_nonzero_",i,".RData"))
+  save(post_means, file = sprintf("%s/balloon_post_means_diagAB_nonzero_rep%03d.RData", path, i))
   
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = mean(se_coverage),
-                                     mean_length_nu = mean(length_nu),
-                                     se_length_nu = mean(se_length))
+                                     mean_length_nu = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -583,7 +547,8 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][21:25]
+temp <- temp[grepl("canonical_mdl_diagA_rep", temp)]
+temp <- temp[grepl("draws", temp)]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -592,12 +557,8 @@ for (i in 1:length(temp)){
 
 # Empty vectors and lists to store results
 coverage_nu <- numeric()
-coverage <- numeric()
 length_nu <- numeric()
-length <- numeric()
 param_summaries <- list()
-se_coverage <- numeric()
-se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -614,26 +575,20 @@ for (i in 1:length(files)){
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:6])
-  coverage[i] <- mean(summary$coverage)
-  se_coverage[i] <- sd(summary$coverage[1:6])/sqrt(6)
   
   # Length
   length_nu[i] <- mean(summary$length[1:6])
-  length[i] <- mean(summary$length)
-  se_length[i] <- sd(summary$length[1:6])/sqrt(6)
   
   # Export post. means 
   post_means <- summary[,1:2]
-  save(post_means, file = paste0(path,"/canonical_post_means_diagA_",i,".RData"))
+  save(post_means, file = sprintf("%s/canonical_post_means_diagA_rep%03d.RData", path, i))
   
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = mean(se_coverage),
-                                     mean_length_nu = mean(length_nu),
-                                     se_length_nu = mean(se_length))
+                                     mean_length_nu = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting
@@ -714,7 +669,8 @@ path = paste0(getwd(),"/Balloon_Simulation/Output")
 temp = list.files(path = path, 
                   pattern="\\.RData$")
 
-temp <- temp[grepl("draws", temp)][26:30]
+temp <- temp[grepl("canonical_mdl_diagAB_rep", temp)]
+temp <- temp[grepl("draws", temp)]
 
 files <- character()
 for (i in 1:length(temp)){
@@ -723,12 +679,8 @@ for (i in 1:length(temp)){
 
 # Empty vectors and lists to store results
 coverage_nu <- numeric()
-coverage <- numeric()
 length_nu <- numeric()
-length <- numeric()
 param_summaries <- list()
-se_coverage <- numeric()
-se_length <- numeric()
 
 # For loop for average results across simulations
 for (i in 1:length(files)){
@@ -745,26 +697,20 @@ for (i in 1:length(files)){
   
   # Coverage
   coverage_nu[i] <- mean(summary$coverage[1:7])
-  coverage[i] <- mean(summary$coverage)
-  se_coverage[i] <- sd(summary$coverage[1:7])/sqrt(7)
   
   # Length
   length_nu[i] <- mean(summary$length[1:7])
-  length[i] <- mean(summary$length)
-  se_length[i] <- sd(summary$length[1:7])/sqrt(7)
   
   # Export post. means 
   post_means <- summary[,1:2]
-  save(post_means, file = paste0(path,"/canonical_post_means_diagAB_",i,".RData"))
+  save(post_means, file = sprintf("%s/canonical_post_means_diagAB_rep%03d.RData", path, i))
   
   param_summaries[[i]] <- summary
 }
 
 # Average HPD length and coverage
 coverage_length_result <- data.frame(mean_coverage_nu = mean(coverage_nu),
-                                     se_coverage_nu = mean(se_coverage),
-                                     mean_length_nu = mean(length_nu),
-                                     se_length_nu = mean(se_length))
+                                     mean_length_nu = mean(length_nu))
 round(coverage_length_result,digits = 3)
 
 # Combine all chain summaries and get average result for plotting

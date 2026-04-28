@@ -8,16 +8,17 @@ library(R.matlab)
 
 pred_signal <- list()
 
-for (i in 1:5){
+for (i in 1:50){
   # Load in posterior means (MCMC)
-  load(paste0("Balloon_Simulation/Output/balloon_post_means_diagA_zero_",i,".RData"))
+  load(sprintf("Balloon_Simulation/Output/balloon_post_means_diagA_zero_rep%03d.RData", i))
   
   # Load in observed signals (data)
-  load("Balloon_Simulation/Data/balloon_sim_data_diagA_zero.RData")
+  load(sprintf("Balloon_Simulation/Data/balloon_sim_diagA_zero_data_rep%03d.RData", i))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
-  y_obs <- dat$y_obs
   
+  rm(dat)
+
   # 2 nodes, 2 experimental inputs
   m = 2; n_u = 2
   
@@ -96,7 +97,6 @@ for (i in 1:5){
                atol = 1e-6, 
                rtol = 1e-6
   )
-  diagnostics(out_z)
   
   # Get rid of first column of z (same as times)
   out_z <- out_z[,-1]
@@ -126,15 +126,16 @@ rm(list = ls())
 
 pred_signal <- list()
 
-for (i in 1:5){
+for (i in 1:50){
   # Load in posterior means (MCMC)
-  load(paste0("Balloon_Simulation/Output/balloon_post_means_diagAB_zero_",i,".RData"))
+  load(sprintf("Balloon_Simulation/Output/balloon_post_means_diagAB_zero_rep%03d.RData", i))
   
   # Load in observed signals (data)
-  load("Balloon_Simulation/Data/balloon_sim_data_diagAB_zero.RData")
+  load(sprintf("Balloon_Simulation/Data/balloon_sim_diagAB_zero_data_rep%03d.RData", i))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
-  y_obs <- dat$y_obs
+  
+  rm(dat)
   
   # 2 nodes, 2 experimental inputs
   m = 2; n_u = 2
@@ -215,7 +216,6 @@ for (i in 1:5){
                atol = 1e-6, 
                rtol = 1e-6
   )
-  diagnostics(out_z)
   
   # Get rid of first column of z (same as times)
   out_z <- out_z[,-1]
@@ -244,15 +244,16 @@ rm(list = ls())
 
 pred_signal <- list()
 
-for (i in 1:5){
+for (i in 1:50){
   # Load in posterior means (MCMC)
-  load(paste0("Balloon_Simulation/Output/balloon_post_means_diagA_nonzero_",i,".RData"))
+  load(sprintf("Balloon_Simulation/Output/balloon_post_means_diagA_nonzero_rep%03d.RData", i))
   
   # Load in observed signals (data)
-  load("Balloon_Simulation/Data/balloon_sim_data_diagA_nonzero.RData")
+  load(sprintf("Balloon_Simulation/Data/balloon_sim_diagA_nonzero_data_rep%03d.RData", i))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
-  y_obs <- dat$y_obs
+  
+  rm(dat)
   
   # 2 nodes, 2 experimental inputs
   m = 2; n_u = 2
@@ -332,7 +333,6 @@ for (i in 1:5){
                atol = 1e-6, 
                rtol = 1e-6
   )
-  diagnostics(out_z)
   
   # Get rid of first column of z (same as times)
   out_z <- out_z[,-1]
@@ -361,15 +361,16 @@ rm(list = ls())
 
 pred_signal <- list()
 
-for (i in 1:5){
+for (i in 1:50){
   # Load in posterior means (MCMC)
-  load(paste0("Balloon_Simulation/Output/balloon_post_means_diagAB_nonzero_",i,".RData"))
+  load(sprintf("Balloon_Simulation/Output/balloon_post_means_diagAB_nonzero_rep%03d.RData", i))
   
   # Load in observed signals (data)
-  load("Balloon_Simulation/Data/balloon_sim_data_diagAB_nonzero.RData")
+  load(sprintf("Balloon_Simulation/Data/balloon_sim_diagAB_nonzero_data_rep%03d.RData", i))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
-  y_obs <- dat$y_obs
+  
+  rm(dat)
   
   # 2 nodes, 2 experimental inputs
   m = 2; n_u = 2
@@ -450,7 +451,6 @@ for (i in 1:5){
                atol = 1e-6, 
                rtol = 1e-6
   )
-  diagnostics(out_z)
   
   # Get rid of first column of z (same as times)
   out_z <- out_z[,-1]
@@ -481,16 +481,16 @@ rm(list = ls())
 
 pred_signal <- list()
 
-for (i in 1:5){
+for (i in 1:50){
   # Load in posterior means (MCMC)
-  load(paste0("Balloon_Simulation/Output/canonical_post_means_diagA_",i,".RData"))
+  load(sprintf("Balloon_Simulation/Output/canonical_post_means_diagA_rep%03d.RData", i))
   
   # Load in observed signals (data)
-  matlab_dat <- readMat("Balloon_Simulation/Data/canonical_sim_data_diagA.mat")
-  dat <- list(times = seq(0,300,by = 2)[-1], u = matlab_dat$U, y_obs = matlab_dat$Y)
+  load(sprintf("Balloon_Simulation/Data/canonical_sim_data_diagA_rep%03d.RData", i))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
-  y_obs <- dat$y_obs
+  
+  rm(dat)
   
   # 2 nodes, 2 experimental inputs
   m = 2; n_u = 2
@@ -570,7 +570,6 @@ for (i in 1:5){
                atol = 1e-6, 
                rtol = 1e-6
   )
-  diagnostics(out_z)
   
   # Get rid of first column of z (same as times)
   out_z <- out_z[,-1]
@@ -598,16 +597,16 @@ rm(list = ls())
 
 pred_signal <- list()
 
-for (i in 1:5){
+for (i in 1:50){
   # Load in posterior means (MCMC)
-  load(paste0("Balloon_Simulation/Output/canonical_post_means_diagAB_",i,".RData"))
+  load(sprintf("Balloon_Simulation/Output/canonical_post_means_diagAB_rep%03d.RData", i))
   
   # Load in observed signals (data)
-  matlab_dat <- readMat("Balloon_Simulation/Data/canonical_sim_data_diagAB.mat")
-  dat <- list(times = seq(0,300,by = 2)[-1], u = matlab_dat$U, y_obs = matlab_dat$Y)
+  load(sprintf("Balloon_Simulation/Data/canonical_sim_data_diagAB_rep%03d.RData", i))
   u <- rbind(0,dat$u)
   times <- c(0,dat$times)
-  y_obs <- dat$y_obs
+  
+  rm(dat)
   
   # 2 nodes, 2 experimental inputs
   m = 2; n_u = 2
@@ -688,7 +687,6 @@ for (i in 1:5){
                atol = 1e-6, 
                rtol = 1e-6
   )
-  diagnostics(out_z)
   
   # Get rid of first column of z (same as times)
   out_z <- out_z[,-1]
