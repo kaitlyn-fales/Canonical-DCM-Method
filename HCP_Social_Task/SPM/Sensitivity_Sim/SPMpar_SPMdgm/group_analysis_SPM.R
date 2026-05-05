@@ -3,6 +3,7 @@ suppressPackageStartupMessages(library(posterior))
 suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(R.matlab))
+suppressPackageStartupMessages(library(cdcm))
 
 # Get environment variables from Slurm
 task_id <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
@@ -117,7 +118,7 @@ meta_data <- list(
 )
 
 # Compile stan model
-mod <- cmdstan_model("../../../../meta_analysis.stan")  
+mod <- compile_meta_analysis() 
 
 init_fun <- function() {
   list(
