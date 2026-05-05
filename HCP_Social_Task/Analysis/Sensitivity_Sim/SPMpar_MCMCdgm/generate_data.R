@@ -157,7 +157,7 @@ for (i in 1:length(subjects)){
     
     for (k in 1:m) {
       # target variance for given SNR
-      variance[k] <- (var(BOLD[, k]) + (mean(BOLD[, k]))^2) / SNR
+      variance[k] <- (var(BOLD[, k])) / SNR^2
       
       # draw Gaussian noise
       noise <- rnorm(length(times) - 1, mean = 0, sd = sqrt(variance[k]))
