@@ -1,2 +1,10 @@
-# Canonical-DCM-Method
+# MCMC-Based Dynamic Causal Modeling for fMRI Connectivity Repository
+
+This repository contains all of the information and code required to reproduce the results from our paper implementing the canonical dynamic causal model (CDCM) in simulations and real data applications. More information on the R package is below as well. 
+
+**Title:** An MCMC-Based Method for Dynamic Causal Modeling of Effective Connectivity in Functional MRI
+
+**Authors:** Kaitlyn R. Fales, Hyebin Song, Nicole A. Lazar
+
+**Abstract:** Effective connectivity analysis in functional magnetic resonance imaging (fMRI) studies directional interactions among brain regions and experimental stimuli. Dynamic causal modeling (DCM) is a widely used method to estimate effective connectivity, based on a state-space representation consisting of a latent neural signal model and an observation model transforming this signal into the observed blood-oxygen–level-dependent (BOLD) response. A standard DCM combines ordinary differential equation (ODE) dynamics for the latent signal with a complex neural-hemodynamic system for the observation model, and typically uses variational Bayes for parameter estimation. While physically well-motivated, this approach can lead to practical challenges such as inexact solutions and underestimated uncertainty. We introduce Canonical DCM (CDCM), a Markov chain Monte Carlo (MCMC)-based method that adopts a simpler observation model and the No-U-Turn Sampler for posterior sampling. The simpler observation model admits a piecewise analytic solution to the neural ODE, increasing computational efficiency and enabling explicit derivation of sufficient conditions for parameter identifiability. Our results indicate that this approach provides reliable uncertainty quantification and consistent estimation of parameters related to experimental inputs for simulated and real data. We use publicly available data from the Wellcome Centre for Human Neuroimaging and the Human Connectome Project (HCP) to benchmark CDCM against standard DCM methods and examine replicability of estimated connectivity patterns in small- and large-scale neuroimaging settings.
  
