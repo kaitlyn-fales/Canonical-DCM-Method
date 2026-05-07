@@ -136,25 +136,40 @@ y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
 y_obs = sweep(y_obs, 2, beta, "-")
 ##########################################################################
 
+tiff("Fales_Fig7.tiff", width = 9, height = 10, units = 'in', res = 800, compression = 'lzw', type = "cairo")
 
 titles <- c("V1","V5","SPC")
 xlabs <- c("Time (Seconds)","Time (Seconds)","Time (Seconds)")
 
-par(mfrow = c(4,1), mar = c(4.5,6,4.5,1.5))
+par(mfrow = c(4,1), 
+    mar = c(4.5,6,4.5,1.5), 
+    oma = c(3.5,0,0,0))
 for (i in 1:ncol(y_pred)){
   plot(times[-1],y_obs[,i],type = 'l',xlab = xlabs[i],
-       ylab = "BOLD Response", 
+       ylab = "BOLD Response", lwd = 1,
        ylim = c(min(c(y_obs[,i],y_pred[,i],y_pred_SPM[,i])),
                 max(c(y_obs[,i],y_pred[,i],y_pred_SPM[,i]))), col = "black",
-       main = titles[i], lty = "dotted",
+       main = titles[i], lty = "dashed",
        cex.axis = 1.3,    
        cex.lab = 1.4,    
        cex.main = 1.6,    
        font.axis = 2,      
        font.lab = 2,       
        font.main = 2)
-  lines(times[-1],y_pred[,i],type = 'l',col = "blue")
-  lines(times[-1],y_pred_SPM[,i],type = 'l',col = "red")
+  lines(times[-1],y_pred_SPM[,i],type = 'l',col = "red", lwd = 1.5)
+  lines(times[-1],y_pred[,i],type = 'l',col = "blue",lwd = 1.5)
+  if(i == 3){
+    legend("bottomleft",
+           inset = c(-0.05, -0.8),
+           legend = c("Observed", "CDCM", "SPM"),
+           horiz = T,
+           col = c("black", "blue", "red"),
+           lty = c(3,1,1),
+           lwd = 2,
+           bty = "n",
+           cex = 1.3,
+           xpd = NA)
+  }
 }
 # Plot experimental design
 plot(1, type="n", xlab = "Time (Seconds)", ylab="", yaxt = 'n', frame.plot = F,
@@ -168,6 +183,17 @@ plot(1, type="n", xlab = "Time (Seconds)", ylab="", yaxt = 'n', frame.plot = F,
 lines(x = times, y = u[,1], type = 'l',col = 'black', lty = 3)
 lines(x = times, y = u[,2]/2, type = 'l',col = 'black', lty = 2)
 lines(x = times, y = u[,3]/4, type = 'l',col = 'black')
+legend("bottomleft",
+       inset = c(-0.05, -0.8),
+       legend = c("Photic", "Motion", "Attention"),
+       lty = c(3,2,1),
+       horiz = T,
+       lwd=2,
+       col = "black",
+       bty = "n",
+       cex = 1.3,
+       xpd = NA)
+dev.off()
 
 # Calculate MSE and bootstrapped SE (block bootstrap to account for fMRI temporal dependence)
 bootstrap_mse <- function(y_obs, y_pred, B = 10000, block_len = 10, seed = 1234) {

@@ -105,6 +105,19 @@ final_plot <- arrangeGrob(
 grid.newpage()
 grid.draw(final_plot)
 
+ggsave(
+  filename = "Fales_Fig8.tiff", 
+  plot = final_plot, 
+  device = "tiff",     
+  width = 10,          
+  height = 9,         
+  units = "in", 
+  dpi = 800,          
+  compression = "lzw",
+  bg = "white"
+)
+
+
 
 ###################################################################
 

@@ -39,7 +39,7 @@ SPM$Method <- rep("SPM",nrow(SPM))
 VBA <- data.frame(par = SPM$par,VBA[,2:5])
 VBA$Method <- rep("VBA",nrow(VBA))
 MCMC <- data.frame(par = SPM$par,MCMC[,2:5])
-MCMC$Method <- rep("Canonical DCM",nrow(MCMC))
+MCMC$Method <- rep("CDCM",nrow(MCMC))
 
 # One df with all results
 df <- rbind(SPM,VBA,MCMC)
@@ -54,7 +54,7 @@ par.labs <- c("V5 -> V1",
 names(par.labs) <- SPM$par
 
 # Plot results
-df %>% 
+p <- df %>% 
   ggplot(mapping = aes(x = par, y = mean, color = Method)) +
   geom_point(shape = 19, size = 2, position=position_dodge(width=0.8)) +
   geom_errorbar(aes(ymax = X97.5., ymin = X2.5.), 
@@ -77,4 +77,14 @@ df %>%
   facet_wrap(~par, scales = "free_x", nrow = 2,
              labeller = labeller(par = par.labs))
 
+ggsave(
+  filename = "Fales_Fig6.tiff", 
+  plot = p, 
+  device = "tiff",     
+  width = 8,          
+  height = 4,         
+  units = "in", 
+  dpi = 800,          
+  compression = "lzw"  
+)
 
