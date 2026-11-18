@@ -14,16 +14,12 @@ MCMC <- results[c(5:8,12:14),]
 MCMC <- cbind(MCMC[,1],round(MCMC[,2:5], digits = 4))
 write.csv(MCMC, "Attention_Motion/Output/MCMC_summary.csv")
 
-# To use for est vs obs - initial value means
-z0_mean <- results[15:17,1:2]
-save(z0_mean, file = "Attention_Motion/Output/MCMC_z0_mean.RData")
-
 # To use for est vs obs - self loop param on A
 diag_A <- results[9:11,1:2]
 save(diag_A, file = "Attention_Motion/Output/MCMC_diag_A.RData")
 
 # To use for est vs obs - beta
-beta <- results[18:20,1:2]
+beta <- results[15:17,1:2]
 save(beta, file = "Attention_Motion/Output/beta.RData")
 
 # Trace plots

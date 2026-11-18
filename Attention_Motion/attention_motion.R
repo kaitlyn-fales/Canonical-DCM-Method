@@ -29,8 +29,8 @@ idxs <- list(A_idxs = A_idxs,
              B_idxs = B_idxs,
              C_idxs = C_idxs)
 
-# Put data into form for sampler - warning is for end of scan, no issue
-stan_dat <- get_stan_dat(motion_dat, idxs)
+# Put data into form for sampler
+stan_dat <- get_stan_dat(motion_dat, idxs, ar1 = T)
 
 # Convergence criterion - Multivariate ESS (95% HPD, 5% tolerance)
 ess_check <- minESS_criterion(stan_dat, alpha = 0.05, eps = 0.05)

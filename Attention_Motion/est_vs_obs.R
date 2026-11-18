@@ -7,9 +7,6 @@ library(R.matlab)
 MCMC <- read.csv("Attention_Motion/Output/MCMC_summary.csv")
 MCMC_means <- MCMC$mean
 
-# Load in posterior means - initial condition (MCMC)
-load("Attention_Motion/Output/MCMC_z0_mean.RData")
-
 # Load in posterior means - diag(A) (MCMC)
 load("Attention_Motion/Output/MCMC_diag_A.RData")
 
@@ -98,7 +95,7 @@ nu_C = MCMC_means[7]
 nu <- list(nu_A, nu_B, nu_C)
 
 # Initial value - MCMC
-z0 <- z0_mean$mean 
+z0 <- rep(0,3)
 
 # Constant shift beta - MCMC
 beta <- beta$mean
@@ -125,8 +122,12 @@ out_z <- out_z[,-1]
 ######### Hemodynamic model #####################################
 # hrf function (using the difference of two gammas - canonical)
 HRF = function(t){dgamma(x = t, shape = 6,rate = 1) - (1/6)*dgamma(x = t,shape = 16,rate = 1)}
+# HRF_mu = function(mu,tp){
+#   convolve(mu, rev(HRF(tp)),type="open")[1:length(tp)]
+# }
 HRF_mu = function(mu,tp){
-  convolve(mu, rev(HRF(tp)),type="open")[1:length(tp)]
+  mu_lag <- c(0, mu[-length(mu)])
+  stats::convolve(mu_lag, rev(HRF(tp)),type="open")[1:length(tp)]
 }
 
 # Convolve with HRF
@@ -134,6 +135,7 @@ y_pred = sapply(1:m, function(i) HRF_mu(out_z[-1,i],times[-1]))
 
 # Apply constant shift as estimated by beta to the data - not predicted signal for ease of viewing
 y_obs = sweep(y_obs, 2, beta, "-")
+
 ##########################################################################
 
 tiff("Fales_Fig7.tiff", width = 9, height = 10, units = 'in', res = 800, compression = 'lzw', type = "cairo")
@@ -238,6 +240,18 @@ results <- list(
 results_df <- do.call(rbind, results)
 results_df
 
+# Identifiability check with est. post. means
+load("Attention_Motion/Output/attention_motion_draws.RData")
+
+pred <- predict_cdcm(
+  draws_df        = draws_df,
+  hypothesis_idxs = idxs,
+  nscan = 360, m = m, n_u = n_u, TR = times[2]-times[1], U = motion_dat$u,
+  check_identifiability = TRUE, ar1 = T
+)
+
+lat <- pred$identifiability$latent
+lat$cond_A3; lat$cond_A4; lat$all_ok
 
 
 
